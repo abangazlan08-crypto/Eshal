@@ -352,7 +352,7 @@ def cal_icon(s=50):
     return im
 
 
-def ticket(w=560, h=230, tilt_label='NORWAY'):
+def ticket(w=560, h=230, sub='PGLS • NORWAY'):
     im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     d.rounded_rectangle([0, 0, w - 1, h - 1], 26, fill=(255, 255, 255, 255))
@@ -369,7 +369,7 @@ def ticket(w=560, h=230, tilt_label='NORWAY'):
     d.line([(180, 102), (232, 102)], fill=RED + (255,), width=9)
     d.polygon([(228, 88), (250, 102), (228, 116)], fill=RED + (255,))
     d.text((262, 70), 'NOR', font=f2, fill=(25, 25, 35, 255))
-    d.text((34, 160), 'PGLS • ' + tilt_label, font=f3, fill=(70, 70, 80, 255))
+    d.text((34, 160), sub, font=f3, fill=(70, 70, 80, 255))
     fl = no_flag(80, 58)
     im.alpha_composite(fl, (stub + (w - stub - 80) // 2, 40))
     d.text((stub + (w - stub) / 2, 160), 'x1', font=font(F_XB, 40), fill=(255, 255, 255, 255), anchor='mm')
@@ -379,6 +379,80 @@ def ticket(w=560, h=230, tilt_label='NORWAY'):
         ImageDraw.Draw(m).ellipse([stub - 20, cy - 20, stub + 20, cy + 20], fill=0)
     im.putalpha(ImageChops.multiply(im.getchannel('A'), m))
     return with_shadow(im, 20, 12, 0.4)
+
+
+# ---------------------------------------------------------------- shared outro / sfx / composite
+_NAVY = None
+
+
+def outro_frame(to, fi, logo_w, name='Azlan & Eza'):
+    """Dark branded outro: glitch logo bounce-in + search-bar pill, fade to black."""
+    global _NAVY
+    if _NAVY is None:
+        _NAVY = Image.new('RGBA', (W, H), NAVY + (255,))
+    fr = _NAVY.copy()
+    sc = back_out(min(1, to / 0.45)) * 0.66
+    if (to < 0.5) and (fi % 3 != 0):
+        for col, dx in ((CYAN, -14), (PINK, 14)):
+            g = Image.new('RGBA', logo_w.size, col + (255,))
+            g.putalpha(logo_w.getchannel('A').point(lambda v: int(v * 0.6)))
+            place(fr, g, W / 2 + dx * (1 - to / 0.5), H * 0.40, sc, 1)
+    place(fr, logo_w, W / 2, H * 0.40, sc, min(1, to / 0.2))
+    k = ease_out((to - 0.5) / 0.4)
+    if k > 0:
+        pw, ph = 720, 104
+        p_im = Image.new('RGBA', (pw + 24, ph + 24), (0, 0, 0, 0))
+        pdr = ImageDraw.Draw(p_im)
+        pdr.rounded_rectangle([0, 6, pw, ph + 6], 22, fill=CYAN + (255,))
+        pdr.rounded_rectangle([12, 6, pw + 12, ph + 6], 22, fill=PINK + (255,))
+        pdr.rounded_rectangle([6, 6, pw + 6, ph + 6], 22, fill=(255, 255, 255, 255))
+        pdr.ellipse([46, 32, 86, 72], outline=(40, 40, 50, 255), width=6)
+        pdr.line([80, 66, 100, 86], fill=(40, 40, 50, 255), width=7)
+        pdr.text((128, 56), name, font=font(F_B, 50), fill=(25, 25, 35, 255), anchor='lm')
+        pdr.rounded_rectangle([pw - 150, 18, pw - 10, ph - 6], 16, fill=RED + (255,))
+        pdr.text((pw - 80, 56), 'Follow', font=font(F_B, 34), fill=(255, 255, 255, 255), anchor='mm')
+        place(fr, p_im, W / 2, H * 0.62 + (1 - k) * 80, 1, k)
+    if to > OUTRO - 0.5:
+        fr.alpha_composite(Image.new('RGBA', (W, H), (0, 0, 0, int(255 * (to - (OUTRO - 0.5)) / 0.5))))
+    return fr
+
+
+def write_sfx(total, pops, whooshes, path, sr=48000):
+    """pops: start times; whooshes: (start, dur, vol) tuples."""
+    n = int(total * sr)
+    sfx = np.zeros(n, np.float32)
+    rng = np.random.default_rng(1)
+
+    def add(i0, seg):
+        if 0 <= i0 < n:
+            sfx[i0:i0 + len(seg)] += seg[:n - i0]
+    for t0, dur, vol in whooshes:
+        m = int(dur * sr)
+        out = np.convolve(rng.standard_normal(m).astype(np.float32), np.ones(24) / 24, 'same')
+        add(int(t0 * sr), out * np.sin(np.linspace(0, math.pi, m)) ** 2 * vol)
+    for t0 in pops:
+        m = int(0.09 * sr)
+        tt = np.arange(m) / sr
+        add(int(t0 * sr), np.sin(2 * math.pi * (880 + 600 * tt / 0.09) * tt) * np.exp(-tt * 40) * 0.12)
+    st = np.stack([sfx, sfx], -1)
+    with wave.open(path, 'wb') as wf:
+        wf.setnchannels(2); wf.setsampwidth(2); wf.setframerate(sr)
+        wf.writeframes((np.clip(st, -1, 1) * 32767).astype(np.int16).tobytes())
+
+
+def composite(base, fdir, sfx, total, final):
+    """Base video (+ cloned last frame under the outro) + RGBA overlay frames + sfx -> final mp4."""
+    fc = (f"[0:v]tpad=stop_mode=clone:stop_duration={OUTRO}[bv];"
+          f"[bv][1:v]overlay=0:0:format=auto,fade=t=in:d=0.3,format=yuv420p[v];"
+          f"[0:a]apad=whole_dur={total}[va];[va][2:a]amix=inputs=2:normalize=0:duration=first,"
+          f"afade=t=in:d=0.2,afade=t=out:st={total-0.5}:d=0.5,loudnorm=I=-14:TP=-1.5:LRA=11[a]")
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', base,
+                    '-framerate', str(FPS), '-i', os.path.join(fdir, 'f%05d.png'),
+                    '-i', sfx, '-filter_complex', fc,
+                    '-map', '[v]', '-map', '[a]', '-t', f'{total}', '-r', str(FPS),
+                    '-c:v', 'libx264', '-crf', '19', '-preset', 'medium', '-pix_fmt', 'yuv420p',
+                    '-c:a', 'aac', '-b:a', '160k', '-ar', '48000', '-movflags', '+faststart', final],
+                   check=True)
 
 
 # ---------------------------------------------------------------- main overlay render
@@ -440,7 +514,6 @@ def main():
     logo_c, logo_w = load_logos()
     wm = logo_w.resize((150, int(150 * logo_w.height / logo_w.width)), Image.LANCZOS)
     paper = paper_texture(W, H)
-    navy = Image.new('RGBA', (W, H), NAVY + (255,))
 
     # progress card
     def progress_card(p):
@@ -590,84 +663,17 @@ def main():
 
         # ---- outro
         if t >= base_dur:
-            to = t - base_dur
-            fr = navy.copy()
-            # glitch logo
-            sc = back_out(min(1, to / 0.45)) * 0.66
-            jitter = (to < 0.5) and (fi % 3 != 0)
-            if jitter:
-                for col, dx in ((CYAN, -14), (PINK, 14)):
-                    g = Image.new('RGBA', logo_w.size, col + (255,))
-                    g.putalpha(logo_w.getchannel('A').point(lambda v: int(v * 0.6)))
-                    place(fr, g, W / 2 + dx * (1 - to / 0.5), H * 0.40, sc, 1)
-            place(fr, logo_w, W / 2, H * 0.40, sc, min(1, to / 0.2))
-            # search pill
-            k = ease_out((to - 0.5) / 0.4)
-            if k > 0:
-                pw, ph = 720, 104
-                p_im = Image.new('RGBA', (pw + 24, ph + 24), (0, 0, 0, 0))
-                pdr = ImageDraw.Draw(p_im)
-                pdr.rounded_rectangle([0, 6, pw, ph + 6], 22, fill=CYAN + (255,))
-                pdr.rounded_rectangle([12, 6, pw + 12, ph + 6], 22, fill=PINK + (255,))
-                pdr.rounded_rectangle([6, 6, pw + 6, ph + 6], 22, fill=(255, 255, 255, 255))
-                pdr.ellipse([46, 32, 86, 72], outline=(40, 40, 50, 255), width=6)
-                pdr.line([80, 66, 100, 86], fill=(40, 40, 50, 255), width=7)
-                pdr.text((128, 56), 'Azlan & Eza', font=font(F_B, 50), fill=(25, 25, 35, 255), anchor='lm')
-                pdr.rounded_rectangle([pw - 150, 18, pw - 10, ph - 6], 16, fill=RED + (255,))
-                pdr.text((pw - 80, 56), 'Follow', font=font(F_B, 34), fill=(255, 255, 255, 255), anchor='mm')
-                place(fr, p_im, W / 2, H * 0.62 + (1 - k) * 80, 1, k)
-            # fade to black at the very end
-            if to > OUTRO - 0.5:
-                fr.alpha_composite(Image.new('RGBA', (W, H), (0, 0, 0, int(255 * (to - (OUTRO - 0.5)) / 0.5))))
+            fr = outro_frame(t - base_dur, fi, logo_w)
         fr.save(os.path.join(fdir, f'f{fi:05d}.png'), compress_level=1)
         if fi % 60 == 0:
             print('frame', fi, '/', nfr, flush=True)
 
-    # ---------------------------------------------------------------- sfx
-    sr = 48000
-    n = int(total * sr)
-    sfx = np.zeros(n, np.float32)
-    rng = np.random.default_rng(1)
-
-    def whoosh(t0, dur=0.35, vol=0.18):
-        m = int(dur * sr)
-        noise = rng.standard_normal(m).astype(np.float32)
-        # simple low-pass sweep via moving average of varying length
-        out = np.convolve(noise, np.ones(24) / 24, 'same')
-        env = np.sin(np.linspace(0, math.pi, m)) ** 2
-        i0 = int(t0 * sr)
-        seg = out * env * vol
-        sfx[i0:i0 + m] += seg[:max(0, min(m, n - i0))]
-
-    def pop_sfx(t0, f=880, vol=0.12):
-        m = int(0.09 * sr)
-        tt = np.arange(m) / sr
-        s = np.sin(2 * math.pi * (f + 600 * tt / 0.09) * tt) * np.exp(-tt * 40) * vol
-        i0 = int(t0 * sr)
-        sfx[i0:i0 + m] += s[:max(0, min(m, n - i0))]
-    for t0 in (0.12, 0.30, seg_t[2][0], t_tahun - 0.1, t_fokus, t_bt, t_pers, t_sabar, seg_t[5][0], t_double, t_double + 0.08):
-        pop_sfx(t0)
-    whoosh(cut_in - 0.12)
-    whoosh(cut_out - 0.15)
-    whoosh(base_dur - 0.15, 0.5, 0.22)
-    sfx = np.stack([sfx, sfx], -1)
-    with wave.open(os.path.join(OUT, 'sfx.wav'), 'wb') as wf:
-        wf.setnchannels(2); wf.setsampwidth(2); wf.setframerate(sr)
-        wf.writeframes((np.clip(sfx, -1, 1) * 32767).astype(np.int16).tobytes())
-
-    # ---------------------------------------------------------------- composite
+    pops = (0.12, 0.30, seg_t[2][0], t_tahun - 0.1, t_fokus, t_bt, t_pers, t_sabar, seg_t[5][0],
+            t_double, t_double + 0.08)
+    whooshes = ((cut_in - 0.12, 0.35, 0.18), (cut_out - 0.15, 0.35, 0.18), (base_dur - 0.15, 0.5, 0.22))
+    write_sfx(total, pops, whooshes, os.path.join(OUT, 'sfx.wav'))
     final = os.path.join(OUT, 'PGLS_Norway_AzlanEza.mp4')
-    fc = (f"[0:v]tpad=stop_mode=clone:stop_duration={OUTRO}[bv];"
-          f"[bv][1:v]overlay=0:0:format=auto,fade=t=in:d=0.3,format=yuv420p[v];"
-          f"[0:a]apad=whole_dur={total}[va];[va][2:a]amix=inputs=2:normalize=0:duration=first,"
-          f"afade=t=in:d=0.2,afade=t=out:st={total-0.5}:d=0.5,loudnorm=I=-14:TP=-1.5:LRA=11[a]")
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', os.path.join(OUT, 'base.mov'),
-                    '-framerate', str(FPS), '-i', os.path.join(fdir, 'f%05d.png'),
-                    '-i', os.path.join(OUT, 'sfx.wav'), '-filter_complex', fc,
-                    '-map', '[v]', '-map', '[a]', '-t', f'{total}', '-r', str(FPS),
-                    '-c:v', 'libx264', '-crf', '19', '-preset', 'medium', '-pix_fmt', 'yuv420p',
-                    '-c:a', 'aac', '-b:a', '160k', '-ar', '48000', '-movflags', '+faststart', final],
-                   check=True)
+    composite(os.path.join(OUT, 'base.mov'), fdir, os.path.join(OUT, 'sfx.wav'), total, final)
     print('done', final)
 
 

@@ -45,6 +45,15 @@ Feel: fast and clean, with a visual change every 2–4 seconds, bold rounded typ
 - Facts confirmed by the user: the event is **PGLS** (not "PJNS"), and the trip is **Malaysia → Norway** (not from Munich).
 - Flag uncertain transcript words to the user (e.g. "pulas", names) instead of guessing.
 
+## Videos made in this style
+| # | Video | Script |
+|---|---|---|
+| 1 | PGLS Norway (Munich, hotel entrance) | `build.py` |
+| 2 | "Part time masih bekerja" (on the tour bus) | `videos/02_part_time_bus.py` |
+
+For a new video, copy `videos/02_part_time_bus.py`. It imports the shared helpers, outro, SFX and compositing from `build.py`, so only the cut list, cues and graphics change.
+Caption timing on noisy audio (e.g. a bus): use Descript's SRT cues and distribute words inside each cue by syllable count.
+
 ## How to render
 ```bash
 RAW=/path/to/raw.mp4 OUT=/path/to/out python3 video-style/build.py
