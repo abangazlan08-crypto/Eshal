@@ -440,18 +440,35 @@ def write_sfx(total, pops, whooshes, path, sr=48000):
         wf.writeframes((np.clip(st, -1, 1) * 32767).astype(np.int16).tobytes())
 
 
-def composite(base, fdir, sfx, total, final):
-    """Base video (+ cloned last frame under the outro) + RGBA overlay frames + sfx -> final mp4."""
+def audio_mix_graph(voice, sfx, total, music=None, music_ss=0.0, music_db=-14.0, out='a', outro_at=None):
+    """Voice + SFX, plus an optional music bed that ducks under the voice (sidechain) and rises on the outro."""
+    g = (f"{voice}apad=whole_dur={total},asplit=2[vx][vkey];"
+         f"[vx]{sfx}amix=inputs=2:normalize=0:duration=first[vs];")
+    if music:
+        g += (f"{music}atrim=start={music_ss},asetpts=PTS-STARTPTS,aresample=48000,volume={music_db}dB,"
+              f"apad=whole_dur={total},atrim=end={total},afade=t=in:d=0.8"
+              + (f",volume='1+1.8*min(max((t-{outro_at})/0.6\\,0)\\,1)':eval=frame" if outro_at else '') + "[mu];"
+              f"[mu][vkey]sidechaincompress=threshold=0.02:ratio=8:attack=15:release=400:makeup=1[md];"
+              f"[vs][md]amix=inputs=2:normalize=0:duration=first,")
+    else:
+        g += "[vkey]anullsink;[vs]"
+    g += f"afade=t=in:d=0.2,afade=t=out:st={total-0.8}:d=0.8,loudnorm=I=-14:TP=-1.5:LRA=11[{out}]"
+    return g
+
+
+def composite(base, fdir, sfx, total, final, music=None, music_ss=0.0, music_db=-14.0):
+    """Base video (+ cloned last frame under the outro) + RGBA overlay frames + sfx (+ music bed) -> final mp4."""
     fc = (f"[0:v]tpad=stop_mode=clone:stop_duration={OUTRO}[bv];"
           f"[bv][1:v]overlay=0:0:format=auto,fade=t=in:d=0.3,format=yuv420p[v];"
-          f"[0:a]apad=whole_dur={total}[va];[va][2:a]amix=inputs=2:normalize=0:duration=first,"
-          f"afade=t=in:d=0.2,afade=t=out:st={total-0.5}:d=0.5,loudnorm=I=-14:TP=-1.5:LRA=11[a]")
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', base,
-                    '-framerate', str(FPS), '-i', os.path.join(fdir, 'f%05d.png'),
-                    '-i', sfx, '-filter_complex', fc,
-                    '-map', '[v]', '-map', '[a]', '-t', f'{total}', '-r', str(FPS),
-                    '-c:v', 'libx264', '-crf', '19', '-preset', 'medium', '-pix_fmt', 'yuv420p',
-                    '-c:a', 'aac', '-b:a', '160k', '-ar', '48000', '-movflags', '+faststart', final],
+          + audio_mix_graph('[0:a]', '[2:a]', total, '[3:a]' if music else None, music_ss, music_db,
+                            outro_at=total - OUTRO))
+    cmd = ['ffmpeg', '-v', 'error', '-y', '-i', base, '-framerate', str(FPS), '-i', os.path.join(fdir, 'f%05d.png'),
+           '-i', sfx]
+    if music:
+        cmd += ['-i', music]
+    subprocess.run(cmd + ['-filter_complex', fc, '-map', '[v]', '-map', '[a]', '-t', f'{total}', '-r', str(FPS),
+                          '-c:v', 'libx264', '-crf', '19', '-preset', 'medium', '-pix_fmt', 'yuv420p',
+                          '-c:a', 'aac', '-b:a', '160k', '-ar', '48000', '-movflags', '+faststart', final],
                    check=True)
 
 

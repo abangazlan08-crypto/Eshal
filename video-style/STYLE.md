@@ -51,6 +51,9 @@ Feel: fast and clean, with a visual change every 2–4 seconds, bold rounded typ
 | 1 | PGLS Norway (Munich, hotel entrance) | `build.py` |
 | 2 | "Part time masih bekerja" (on the tour bus) | `videos/02_part_time_bus.py` |
 | 3 | 3 kelebihan simpan emas konsisten (studio, 1:13, with 2 gold-bar photos) | `videos/03_konsisten_emas.py` |
+| 4 | Simpan dulu, baru berseronok (in-car selfie, 1:16, stock music) | `videos/04_simpan_dulu.py` |
+
+Music: ask Descript's Agent Underlord to put a stock track alone in a new "Music" composition, publish it as Audio, download it, and pass it to `composite(..., music=...)`. It ducks under the voice (sidechain) and rises on the outro. Make an audio-only preview with `--audio-preview` before rendering. Licensed music files stay out of git.
 
 ### Workflow the user asked for on video 3 (use again)
 1. Transcribe first (Descript SRT), mark false starts and repeated takes, and cut every pause over about 0.3s (speech-energy regions, ±0.1s padding). Keep the video under 2 minutes.

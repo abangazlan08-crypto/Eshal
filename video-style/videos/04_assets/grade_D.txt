@@ -1,0 +1,1 @@
+eq=brightness=-0.035:contrast=1.12:saturation=0.98:gamma=0.97,colorbalance=rs=-0.01:bs=0.03:rm=-0.02:gm=-0.005:bm=0.04:rh=-0.04:gh=-0.01:bh=0.05,curves=master='0/0 0.25/0.2 0.5/0.5 0.78/0.83 1/0.97'
