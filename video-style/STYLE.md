@@ -50,6 +50,14 @@ Feel: fast and clean, with a visual change every 2–4 seconds, bold rounded typ
 |---|---|---|
 | 1 | PGLS Norway (Munich, hotel entrance) | `build.py` |
 | 2 | "Part time masih bekerja" (on the tour bus) | `videos/02_part_time_bus.py` |
+| 3 | 3 kelebihan simpan emas konsisten (studio, 1:13, with 2 gold-bar photos) | `videos/03_konsisten_emas.py` |
+
+### Workflow the user asked for on video 3 (use again)
+1. Transcribe first (Descript SRT), mark false starts and repeated takes, and cut every pause over about 0.3s (speech-energy regions, ±0.1s padding). Keep the video under 2 minutes.
+2. Make the hook strong: start on the first spoken word, with kinetic text building to a gold "slam" word plus a whoosh.
+3. Premium grade and relight (see `GRADE` / `RELIGHT` in `03_konsisten_emas.py`): contrast 1.10, warm mids, cool highlights, an S-curve, a soft face key-light mask (`03_assets/facemask.png`), vignette and light sharpening.
+4. Place user photos as white-framed cards with a gold shine sweep where the speech matches them.
+5. **Show a preview before rendering** (`--preview` makes a storyboard of graded stills with the real overlays, plus a before/after grade comparison). Render only after the user says "render".
 
 For a new video, copy `videos/02_part_time_bus.py`. It imports the shared helpers, outro, SFX and compositing from `build.py`, so only the cut list, cues and graphics change.
 Caption timing on noisy audio (e.g. a bus): use Descript's SRT cues and distribute words inside each cue by syllable count.
