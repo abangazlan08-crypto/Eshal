@@ -52,6 +52,10 @@ Feel: fast and clean, with a visual change every 2–4 seconds, bold rounded typ
 | 2 | "Part time masih bekerja" (on the tour bus) | `videos/02_part_time_bus.py` |
 | 3 | 3 kelebihan simpan emas konsisten (studio, 1:13, with 2 gold-bar photos) | `videos/03_konsisten_emas.py` |
 | 4 | Simpan dulu, baru berseronok (in-car selfie, 1:16, stock music) | `videos/04_simpan_dulu.py` |
+| 5 | Jangan simpan duit banyak-banyak dalam bank (studio, 2:05, news photo, stock music) | `videos/05_jangan_simpan_dalam_bank.py` |
+
+User rule (video 5): **keeping the original context matters more than the under-2-minute target.** Don't cut a line that carries meaning just to hit 2:00; ask or keep it.
+Caption tokens `display~syllables` (e.g. `RM1.99~9`) show numbers compactly while keeping word timing. Music helpers: `music_ss` < 0 delays the track, and `music_tempo` stretches it (atempo, same pitch) so its natural ending lands on the outro.
 
 Music: ask Descript's Agent Underlord to put a stock track alone in a new "Music" composition, publish it as Audio, download it, and pass it to `composite(..., music=...)`. It ducks under the voice (sidechain) and rises on the outro. Make an audio-only preview with `--audio-preview` before rendering. Licensed music files stay out of git.
 

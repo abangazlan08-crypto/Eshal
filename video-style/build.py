@@ -440,12 +440,17 @@ def write_sfx(total, pops, whooshes, path, sr=48000):
         wf.writeframes((np.clip(st, -1, 1) * 32767).astype(np.int16).tobytes())
 
 
-def audio_mix_graph(voice, sfx, total, music=None, music_ss=0.0, music_db=-14.0, out='a', outro_at=None):
+def audio_mix_graph(voice, sfx, total, music=None, music_ss=0.0, music_db=-14.0, out='a', outro_at=None,
+                    music_tempo=1.0):
     """Voice + SFX, plus an optional music bed that ducks under the voice (sidechain) and rises on the outro."""
     g = (f"{voice}apad=whole_dur={total},asplit=2[vx][vkey];"
          f"[vx]{sfx}amix=inputs=2:normalize=0:duration=first[vs];")
     if music:
-        g += (f"{music}atrim=start={music_ss},asetpts=PTS-STARTPTS,aresample=48000,volume={music_db}dB,"
+        lead = (f"atrim=start={music_ss},asetpts=PTS-STARTPTS" if music_ss >= 0   # negative = start the music later
+                else f"adelay={int(-music_ss * 1000)}:all=1")
+        if music_tempo != 1.0:   # stretch a slightly-too-short track
+            lead += f",atempo={music_tempo}"
+        g += (f"{music}{lead},aresample=48000,volume={music_db}dB,"
               f"apad=whole_dur={total},atrim=end={total},afade=t=in:d=0.8"
               + (f",volume='1+1.8*min(max((t-{outro_at})/0.6\\,0)\\,1)':eval=frame" if outro_at else '') + "[mu];"
               f"[mu][vkey]sidechaincompress=threshold=0.02:ratio=8:attack=15:release=400:makeup=1[md];"
@@ -456,12 +461,12 @@ def audio_mix_graph(voice, sfx, total, music=None, music_ss=0.0, music_db=-14.0,
     return g
 
 
-def composite(base, fdir, sfx, total, final, music=None, music_ss=0.0, music_db=-14.0):
+def composite(base, fdir, sfx, total, final, music=None, music_ss=0.0, music_db=-14.0, music_tempo=1.0):
     """Base video (+ cloned last frame under the outro) + RGBA overlay frames + sfx (+ music bed) -> final mp4."""
     fc = (f"[0:v]tpad=stop_mode=clone:stop_duration={OUTRO}[bv];"
           f"[bv][1:v]overlay=0:0:format=auto,fade=t=in:d=0.3,format=yuv420p[v];"
           + audio_mix_graph('[0:a]', '[2:a]', total, '[3:a]' if music else None, music_ss, music_db,
-                            outro_at=total - OUTRO))
+                            outro_at=total - OUTRO, music_tempo=music_tempo))
     cmd = ['ffmpeg', '-v', 'error', '-y', '-i', base, '-framerate', str(FPS), '-i', os.path.join(fdir, 'f%05d.png'),
            '-i', sfx]
     if music:
