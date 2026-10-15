@@ -23,6 +23,7 @@ x_icon, shine, badge, GOLD, GOLD_L = V3.x_icon, V3.shine, V3.badge, V3.GOLD, V3.
 
 RAW = os.environ.get('RAW', os.path.join(WORK, 'raw.mp4'))
 IMG1 = os.path.join(WORK, 'img1.jpg')      # news photo: Kompleks Mahkamah Kuala Terengganu
+PHOTO_CREDIT = os.environ.get('PHOTO_CREDIT', 'Gambar: ihsan laporan media')   # replace with the outlet name when known
 OUT = os.environ.get('OUT', os.path.join(WORK, 'out'))
 MASK = os.path.join(HERE, '03_assets', 'facemask.png')   # same studio as video 3
 # Descript stock (Audioblocks): "Cautious Search", 122.8s, ~128 BPM, builds toward the end.
@@ -250,7 +251,8 @@ def news_card(p, photo):
     ImageDraw.Draw(m).rounded_rectangle([0, 0, pw - 1, phh - 1], 28, fill=int(255 * k))
     phz.putalpha(m)
     im.alpha_composite(phz, (40, 120))
-    y = 120 + phh + 40
+    d.text((cw - 50, 120 + phh + 14), PHOTO_CREDIT, font=font(F_B, 22), fill=(150, 154, 180, int(255 * k)), anchor='ra')
+    y = 120 + phh + 70
     lines = [('Kerabat diraja Terengganu', F_XB, 50, (255, 255, 255)),
              ('saman 2 buah bank', F_XB, 50, GOLD_L),
              ('dakwa wang hilang akibat transaksi mencurigakan', F_B, 30, (170, 172, 190))]
