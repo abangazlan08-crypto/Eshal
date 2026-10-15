@@ -16,6 +16,11 @@ OUTRO = 3.5
 F_XB = os.path.join(FONTS, 'Poppins-ExtraBold.ttf')
 F_B = os.path.join(FONTS, 'Poppins-Bold.ttf')
 
+# TikTok safe zones on 1080x1920 (approx.): keep text and key graphics out of the top tab bar (y<150), the bottom
+# caption/username/sound block (y>1460) and the right action rail (x>940, 760<y<1520).
+TT_TOP, TT_BOTTOM, TT_RIGHT, TT_RAIL_Y = 150, 1460, 940, (760, 1520)
+TT_CAPTION_Y = 1390          # one-word captions sit just above the bottom UI block
+TT_CENTER_X = 1080 / 2 - 50  # full-screen cards shift left of the action rail
 RED = (176, 30, 48)
 KHAKI = (214, 210, 154)
 NAVY = (14, 16, 32)

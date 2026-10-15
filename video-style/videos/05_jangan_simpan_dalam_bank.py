@@ -452,17 +452,17 @@ def main():
             fr.alpha_composite(bgp)
             pr = (t - a_ - 0.15) / max(0.1, b_ - a_ - 0.7)
             card = {'n': lambda q: news_card(q, photo), 'b': basket_card, 's': split_card}[kind](pr)
-            place(fr, card, W / 2, H * 0.40 + (1 - k_in) * 120, 1.10 - 0.12 * k_in if kind == 'n' else 1.12 - 0.12 * k_in, a)
+            place(fr, card, B.TT_CENTER_X, H * 0.40 + (1 - k_in) * 120, (1.10 - 0.12 * k_in if kind == 'n' else 1.12 - 0.12 * k_in) * 0.90, a)
         else:
             # HOOK
             s, a = pop(t, 0.03, hook_end, 0.28, 0.12)
-            place(fr, h1, W / 2 - 10, 200, s, a, rot=-3)
+            place(fr, h1, W / 2 - 30, 245, s, a, rot=-3)
             s, a = pop(t, T['banyak'] - 0.05, hook_end, 0.25, 0.12)
-            place(fr, h2, W / 2 + 10, 320, s, a, rot=-3)
+            place(fr, h2, W / 2 - 10, 365, s, a, rot=-3)
             s, a = pop(t, T['bank'] - 0.05, hook_end, 0.22, 0.12)
             if a:
                 slam = 1 + 0.5 * max(0, 1 - (t - T['bank'] + 0.05) / 0.18)
-                place(fr, h3, W / 2, 450, s * slam if s >= 1 else s, a, rot=-3)
+                place(fr, h3, W / 2 - 20, 495, s * slam if s >= 1 else s, a, rot=-3)
             # RM1.99 juta -> HILANG
             e1 = T['rm73'] - 0.12
             s, a = pop(t, T['rm199'] - 0.1, e1)
@@ -524,11 +524,11 @@ def main():
             place(fr, p_pg, W / 2, 240, s, a)
             s, a = pop(t, T['pg'] - 0.6, e7)
             place(fr, shine(p_cta, (t - T['pg']) / 0.6), W / 2, 380, s, a)
-            place(fr, wm, W - 110, H - 300, 1, 0.9)
+            place(fr, wm, 95, 1010, 0.85, 0.85)
         for a0, a1, w in cap_win:
             if a0 <= t < a1:
                 k = (t - a0) / 0.09
-                place(fr, cap(w), W / 2, H * 0.80, 0.82 + 0.18 * back_out(min(1, k)) if k < 1 else 1, 1)
+                place(fr, cap(w), W / 2, B.TT_CAPTION_Y, 0.82 + 0.18 * back_out(min(1, k)) if k < 1 else 1, 1)
                 break
         for o, z0, z1 in zip(offs[1:], ZOOM[:-1], ZOOM[1:]):
             if z0 != z1 and abs(t - o) < 0.05:

@@ -30,6 +30,15 @@ Feel: fast and clean, with a visual change every 2–4 seconds, bold rounded typ
 | Font | Poppins ExtraBold / Bold (`assets/fonts`) |
 | Outro handle | "Azlan & Eza" (the user hasn't given a social handle yet) |
 
+## TikTok safe zones (required)
+TikTok's UI covers parts of a 1080×1920 frame, so text and key graphics must stay out of:
+- **Top** y < 150 (For You / Following tabs)
+- **Bottom** y > 1460 (caption text, username, sound name, nav bar)
+- **Right rail** x > 940 for 760 < y < 1520 (avatar, like, comment, save, share)
+
+Use `TT_CAPTION_Y` (1390) for one-word captions and `TT_CENTER_X` for full-screen cards (scaled to about 90%). Put the logo watermark on the left side (about x 95, y 1010), not the bottom-right. Before rendering, check the storyboard with the zones drawn over it (`PREVIEW_tiktok_safezone.jpg`).
+Note: videos 1–4 put captions at about 84–88% height, inside the bottom zone. Re-render them if they are reposted.
+
 ## Graphic elements
 1. **Kinetic title (first ~2s, top of frame):** two lines, slightly rotated. Line 1 is brand red with a white outline; line 2 is white and offset right and lower. Bounce-in. Built from words the speaker actually says (e.g. "PGLS / NORWAY").
 2. **One-word captions:** one word at a time, synced to speech. Poppins ExtraBold about 104px (auto-shrinks to fit 900px), white-to-gold gradient, dark outline and soft shadow. Placed low (about 87% of the frame height) so the face stays clear, with a quick pop-in scale for each word. Keep the speaker's spelling (Malay plus English mix). Lowercase, except acronyms.
