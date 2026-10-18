@@ -276,6 +276,16 @@ def pill(text, icon=None, size=46, fg=(20, 20, 30), bg=(255, 255, 255, 245), pad
     return with_shadow(im, 16, 8, 0.35)
 
 
+def fit_pill(text, icon=None, size=56, bg=None, maxw=840):
+    """pill() that shrinks its font until it fits the TikTok safe width (left edge .. action rail)."""
+    kw = {} if bg is None else {'bg': bg}
+    while True:
+        spr = pill(text, icon=icon, size=size, **kw)
+        if spr.width - 64 <= maxw or size <= 30:
+            return spr
+        size -= 2
+
+
 def pin_icon(s=52):
     im = Image.new('RGBA', (s, s), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)

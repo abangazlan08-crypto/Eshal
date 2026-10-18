@@ -36,7 +36,7 @@ TikTok's UI covers parts of a 1080×1920 frame, so text and key graphics must st
 - **Bottom** y > 1460 (caption text, username, sound name, nav bar)
 - **Right rail** x > 940 for 760 < y < 1520 (avatar, like, comment, save, share)
 
-Use `TT_CAPTION_Y` (1390) for one-word captions and `TT_CENTER_X` for full-screen cards (scaled to about 90%). Put the logo watermark on the left side (about x 95, y 1010), not the bottom-right. Before rendering, check the storyboard with the zones drawn over it (`PREVIEW_tiktok_safezone.jpg`).
+Use `fit_pill()` for any pill with long text (it shrinks to the safe width). Use `TT_CAPTION_Y` (1390) for one-word captions and `TT_CENTER_X` for full-screen cards (scaled to about 90%). Put the logo watermark on the left side (about x 95, y 1010), not the bottom-right. Before rendering, check the storyboard with the zones drawn over it (`PREVIEW_tiktok_safezone.jpg`).
 Note: videos 1–4 put captions at about 84–88% height, inside the bottom zone. Re-render them if they are reposted.
 
 ## Graphic elements
@@ -62,6 +62,7 @@ Note: videos 1–4 put captions at about 84–88% height, inside the bottom zone
 | 3 | 3 kelebihan simpan emas konsisten (studio, 1:13, with 2 gold-bar photos) | `videos/03_konsisten_emas.py` |
 | 4 | Simpan dulu, baru berseronok (in-car selfie, 1:16, stock music) | `videos/04_simpan_dulu.py` |
 | 5 | Jangan simpan duit banyak-banyak dalam bank (studio, 2:05, news photo, stock music) | `videos/05_jangan_simpan_dalam_bank.py` |
+| 6 | Kenapa China masih beli emas (studio, 3:07, 2 Reuters/The Edge screenshots, stock music) | `videos/06_kenapa_china_beli_emas.py` |
 
 User rule (video 5): **keeping the original context matters more than the under-2-minute target.** Don't cut a line that carries meaning just to hit 2:00; ask or keep it.
 Caption tokens `display~syllables` (e.g. `RM1.99~9`) show numbers compactly while keeping word timing. Music helpers: `music_ss` < 0 delays the track, and `music_tempo` stretches it (atempo, same pitch) so its natural ending lands on the outro.
@@ -87,3 +88,6 @@ python3 video-style/build.py --skip-base   # re-render overlays only after text 
 
 Getting word timings: model downloads (Hugging Face, Whisper) are blocked in the cloud sandbox. Get the transcript from Descript (`import_media`, then ask Agent Underlord), then align words to speech-energy regions as `align_words()` does.
 Network access needs these allowed domains: `drive.google.com`, `drive.usercontent.google.com`, `media.descriptusercontent.com`, `api.descript.com`. Google Drive file links download through `https://drive.usercontent.google.com/download?id=<ID>&export=download&confirm=t`.
+
+
+News screenshots: crop out ads, and credit the source shown in the screenshot (e.g. "Sumber: Reuters via The Edge Malaysia, 7 Okt 2026"). On-screen numbers come from the speech; flag any that the screenshot doesn't confirm.
