@@ -472,7 +472,7 @@ def audio_mix_graph(voice, sfx, total, music=None, music_ss=0.0, music_db=-14.0,
               f"[vs][md]amix=inputs=2:normalize=0:duration=first,")
     else:
         g += "[vkey]anullsink;[vs]"
-    g += f"afade=t=in:d=0.2,afade=t=out:st={total-0.8}:d=0.8,loudnorm=I=-14:TP=-1.5:LRA=11[{out}]"
+    g += f"afade=t=in:d=0.2,afade=t=out:st={total-0.8}:d=0.8,loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000,alimiter=limit=0.82:attack=5:release=50:level=disabled[{out}]"
     return g
 
 
