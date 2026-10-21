@@ -64,6 +64,7 @@ Note: videos 1–4 put captions at about 84–88% height, inside the bottom zone
 | 5 | Jangan simpan duit banyak-banyak dalam bank (studio, 2:05, news photo, stock music) | `videos/05_jangan_simpan_dalam_bank.py` |
 | 6 | Kenapa China masih beli emas (studio, 3:07, 2 Reuters/The Edge screenshots, stock music) | `videos/06_kenapa_china_beli_emas.py` |
 | 7 | Bonus tahunan dah jadi harta? (in-car, 2:20, cash photo + Public Gold staff photo + BH Online screenshot) | `videos/07_bonus_tahunan.py` |
+| 8 | Bila ada duit baru simpan? (studio, 2:58, AI infographic by Eza, slow zoom-ins) | `videos/08_simpan_dulu_baru_belanja.py` |
 
 User rule (video 5): **keeping the original context matters more than the under-2-minute target.** Don't cut a line that carries meaning just to hit 2:00; ask or keep it.
 Caption tokens `display~syllables` (e.g. `RM1.99~9`) show numbers compactly while keeping word timing. Music helpers: `music_ss` < 0 delays the track, and `music_tempo` stretches it (atempo, same pitch) so its natural ending lands on the outro.
@@ -94,3 +95,5 @@ Network access needs these allowed domains: `drive.google.com`, `drive.userconte
 News screenshots: crop out ads, and credit the source shown in the screenshot (e.g. "Sumber: Reuters via The Edge Malaysia, 7 Okt 2026"). On-screen numbers come from the speech; flag any that the screenshot doesn't confirm.
 
 Music choice: avoid tracks with religious titles or a church/choir character (the audience is Muslim). iPhone ProRAW (.DNG) photos open with PIL plus `ImageOps.exif_transpose`. If Descript AI credits run out, reuse an approved track, crossfaded to length.
+
+Slow zoom-in (video 8): `zoom_vf()` / `slow_amt()` add an +8% zoom across a segment (scale with eval=frame, then crop around the face). Use it on emphasis moments. For the preview, send a short low-res demo clip, since stills can't show motion.
