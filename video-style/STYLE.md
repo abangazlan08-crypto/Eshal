@@ -64,7 +64,7 @@ Note: videos 1–4 put captions at about 84–88% height, inside the bottom zone
 | 5 | Jangan simpan duit banyak-banyak dalam bank (studio, 2:05, news photo, stock music) | `videos/05_jangan_simpan_dalam_bank.py` |
 | 6 | Kenapa China masih beli emas (studio, 3:07, 2 Reuters/The Edge screenshots, stock music) | `videos/06_kenapa_china_beli_emas.py` |
 | 7 | Bonus tahunan dah jadi harta? (in-car, 2:20, cash photo + Public Gold staff photo + BH Online screenshot) | `videos/07_bonus_tahunan.py` |
-| 8 | Bila ada duit baru simpan? (studio, 2:58, AI infographic by Eza, slow zoom-ins) | `videos/08_simpan_dulu_baru_belanja.py` |
+| 8 | Bila ada duit baru simpan? (studio, 2:58, infographic, slow zoom-ins) | `videos/08_simpan_dulu_baru_belanja.py` |
 
 User rule (video 5): **keeping the original context matters more than the under-2-minute target.** Don't cut a line that carries meaning just to hit 2:00; ask or keep it.
 Caption tokens `display~syllables` (e.g. `RM1.99~9`) show numbers compactly while keeping word timing. Music helpers: `music_ss` < 0 delays the track, and `music_tempo` stretches it (atempo, same pitch) so its natural ending lands on the outro.
