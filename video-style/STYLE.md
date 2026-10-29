@@ -66,6 +66,7 @@ Note: videos 1–4 put captions at about 84–88% height, inside the bottom zone
 | 7 | Bonus tahunan dah jadi harta? (in-car, 2:20, cash photo + Public Gold staff photo + BH Online screenshot) | `videos/07_bonus_tahunan.py` |
 | 8 | Bila ada duit baru simpan? (studio, 2:58, infographic, slow zoom-ins) | `videos/08_simpan_dulu_baru_belanja.py` |
 | 9 | 10 tahun bekerja, apa harta anda? (studio, 2:34, 3D motion design, NO zoom) | `videos/09_apa_harta_anda.py` |
+| 10 | Galeri Public Gold walking tour (handheld, Bahasa Sarawak, 2:50, Fuji grade, NO subtitles, NO zoom) | `videos/10_galeri_public_gold.py` |
 
 User rule (video 5): **keeping the original context matters more than the under-2-minute target.** Don't cut a line that carries meaning just to hit 2:00; ask or keep it.
 Caption tokens `display~syllables` (e.g. `RM1.99~9`) show numbers compactly while keeping word timing. Music helpers: `music_ss` < 0 delays the track, and `music_tempo` stretches it (atempo, same pitch) so its natural ending lands on the outro.
@@ -100,3 +101,6 @@ Music choice: avoid tracks with religious titles or a church/choir character (th
 Slow zoom-in (video 8): `zoom_vf()` / `slow_amt()` add an +8% zoom across a segment (scale with eval=frame, then crop around the face). Use it on emphasis moments. For the preview, send a short low-res demo clip, since stills can't show motion.
 
 3D motion (video 9): `fx3d.py` provides `warp3d` (3D card flips/tilts), `extrude_text` (3D titles) and `render_bar`/`render_coin` (lit 3D gold bar/coin). Rock objects about ±50° instead of spinning a full circle, so engraved text is never mirrored. When the user says no zoom, set every segment ZOOM to 1.0 and use flip-ins instead of scale-ins. For the preview, send a short `--demo` clip so the motion can be seen.
+
+Bahasa Sarawak / walking vlog (video 10): spell captions by sound (e.g. *tok, mun, nangga, kami orang*), and send a word-by-word spelling list (`--words`, with timestamps and [?] marks) for the user to check. Keep only speech regions inside kept cues (silent walking is cut). Big camera moves at a cut get a faint white flash plus a soft whoosh. **Fujifilm-style grade** (`GRADE` in `10_galeri_public_gold.py`): low contrast, slightly brighter, lifted blacks, soft highlights, a little less saturation, teal shadows, warm mids, **no vignette** and no relight. The user asked for this video to have **no subtitles** (`CAPTIONS = False`). For names on screen, the user said to **follow the plaque/poster** when it differs from what is said ("ikut plak").
+
