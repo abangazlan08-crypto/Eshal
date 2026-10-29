@@ -101,7 +101,7 @@ CUES = {
     65: (235.890, 241.250, "So guru kami orang adalah Million Star Triple Diamond."),
     67: (242.390, 246.290, "Haa jadi mungkin kita mahu tahu, tok adalah guru kami."),
     68: (246.550, 248.890, "Haa guru kami orang ke guru kami dengan suami."),
-    70: (250.190, 251.730, "Founder G Hundred."),
+    70: (250.190, 251.730, "Founder G100~3."),
     73: (257.089, 261.029, "Dan tok adalah gambar Mahaguru Emas Malaysia okey."),
     74: (262.950, 265.570, "Tuan Cikgu Hashim serta isteri."),
     76: (267.270, 271.390, "Dan mungkin kita jadi sekiranya kita berminat untuk menjadi dealer,"),
@@ -152,7 +152,10 @@ def build_segs():
             segs[-1][1] = max(segs[-1][1], b)
         else:
             segs.append([a, b])
-    return [tuple(s) for s in segs], [1.0] * len(segs)    # no zoom
+    # snap cut points to the frame grid so every segment has exactly as much video as audio
+    # (otherwise each cut adds a fraction of a frame and the picture drifts behind the voice)
+    segs = [(round(a * FPS) / FPS, round(b * FPS) / FPS) for a, b in segs]
+    return [s for s in segs if s[1] > s[0]], [1.0] * len(segs)    # no zoom
 
 
 SEGS, ZOOM = build_segs()
@@ -239,11 +242,14 @@ def render_base():
     for i, (a, b) in enumerate(SEGS):
         d = b - a
         p = os.path.join(OUT, f'seg{i}.mov')
-        af = f"aresample=48000,afade=t=in:d=0.03,afade=t=out:st={d-0.03:.3f}:d=0.03"
-        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', f'{a}', '-t', f'{d}', '-i', RAW,
-                        '-filter_complex', graded_filter() + f";[0:a]{af}[au]", '-map', '[v]', '-map', '[au]',
-                        '-t', f'{d}', '-c:v', 'libx264', '-crf', '16', '-preset', 'fast', '-c:a', 'pcm_s16le',
-                        '-ac', '2', p], check=True)
+        n = int(round(d * FPS))        # exact frame count; audio trimmed/padded to the same length
+        af = (f"aresample=48000,apad,atrim=end_sample={int(round(n / FPS * 48000))},"
+              f"afade=t=in:d=0.03,afade=t=out:st={d-0.03:.3f}:d=0.03")
+        vf = graded_filter().replace('format=yuv420p[v]', f'format=yuv420p,trim=end_frame={n},setpts=PTS-STARTPTS[v]')
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', f'{a}', '-t', f'{d + 0.3}', '-i', RAW,
+                        '-filter_complex', vf + f";[0:a]{af}[au]", '-map', '[v]', '-map', '[au]',
+                        '-c:v', 'libx264', '-crf', '16', '-preset', 'fast', '-c:a', 'pcm_s16le',
+                        '-ac', '2', '-video_track_timescale', '30000', p], check=True)
         parts.append(p)
     lst = os.path.join(OUT, 'list.txt')
     open(lst, 'w').write(''.join(f"file '{p}'\n" for p in parts))
@@ -487,7 +493,7 @@ def main():
     # names from the portrait plaques (user: "ikut plak")
     n_msd = name_card(['Mohd Zulkifli bin Shafie &', 'Najdah binti Mohammed Hussain'],
                       ['Million Star Triple Diamond', 'Guru kami'], w=840)
-    n_g100 = name_card('Founder G Hundred', 'Guru kami & suami', w=700)
+    n_g100 = name_card('Founder G100', 'Guru kami & suami', w=700)
     n_maha = name_card(['Syukor bin Hashim &', 'Jonaina binti Nordin'],
                        ['Mahaguru Emas Malaysia', 'Million Star Double Diamond'], w=840)
     p_cta1 = fit_pill('Berminat jadi dealer?', icon=star_icon(56), size=54, bg=(232, 190, 92, 255))
@@ -596,13 +602,30 @@ def main():
         return fr, True
     t = 0.0
 
+    if '--clip' in sys.argv:
+        # short low-res sync-check clip on the rendered base (overlays + voice), e.g. --clip 135 162
+        i = sys.argv.index('--clip')
+        c0, c1 = float(sys.argv[i + 1]), float(sys.argv[i + 2])
+        cdir = os.path.join(OUT, 'clip')
+        os.makedirs(cdir, exist_ok=True)
+        for k in range(int((c1 - c0) * FPS)):
+            ov, _ = overlay(c0 + k / FPS)
+            ov.resize((540, 960), Image.LANCZOS).save(os.path.join(cdir, f'c{k:05d}.png'), compress_level=1)
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', f'{c0}', '-t', f'{c1 - c0}', '-i', os.path.join(OUT, 'base.mov'),
+                        '-framerate', f'{FPS}', '-i', os.path.join(cdir, 'c%05d.png'),
+                        '-filter_complex', '[0:v]scale=540:960[b];[b][1:v]overlay=0:0:shortest=1[v]', '-map', '[v]',
+                        '-map', '0:a', '-c:v', 'libx264', '-crf', '24', '-c:a', 'aac', '-b:a', '128k',
+                        '-movflags', '+faststart', os.path.join(WORK, 'PREVIEW_sync_check.mp4')], check=True)
+        print('clip ok')
+        return
+
     if preview:
         shots = [('Hook', 2.2), ('Scammer', T['founder'] - 0.2), ('Founder', T['louis'] + 0.8),
                  ('Lokasi', T['galeri'] - 0.3), ('Tingkat 4', T['tingkat'] + 0.8), ('Since 2008', T['since'] + 0.8),
                  ('Terbesar', T['terbesar2'] + 0.8), ('Dari zero', T['growth'] + 2.6),
                  ('Refinery', T['batu'] + 0.6), ('Pertama', T['pertama'] + 0.6), ('Global', T['legacy'] + 0.6),
                  ('Rekod', T['record'] + 2.0), ('VVIP Trip', T['vvip'] + 0.6), ('Seminar', T['achiever'] + 1.6),
-                 ('Dealer', T['taja'] + 0.6), ('Guru', T['msd'] + 1.0), ('G Hundred', T['g100'] + 0.6),
+                 ('Dealer', T['taja'] + 0.6), ('Guru', T['msd'] + 1.0), ('G100', T['g100'] + 0.6),
                  ('Mahaguru', T['hashim'] + 0.6), ('CTA', base_dur - 0.5), ('Outro', base_dur + 1.6)]
         tiles_ = []
         sx = 360 / 1080
