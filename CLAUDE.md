@@ -11,3 +11,9 @@ the bottom block below y=1460, or the right action rail (x>940, y 760-1520) of a
 Use `TT_CAPTION_Y` / `TT_CENTER_X` from `video-style/build.py` and check a storyboard with
 the zones drawn before rendering. Show a preview before every render, and keep the original
 context even if the video ends up over 2 minutes.
+
+Voiceover / full motion-graphic videos (user rule, video 11): use the same settings as
+`video-style/videos/11_10_gram_emas_setahun.py`. That means a light Apple-ad look with no floating
+spheres, real product photos with backgrounds removed, small Jost subtitles, smooth 30 fps motion, and
+30 fps 720p demo previews. See the video 11 notes in `video-style/STYLE.md`.
+
