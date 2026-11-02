@@ -67,6 +67,7 @@ Note: videos 1–4 put captions at about 84–88% height, inside the bottom zone
 | 8 | Bila ada duit baru simpan? (studio, 2:58, infographic, slow zoom-ins) | `videos/08_simpan_dulu_baru_belanja.py` |
 | 9 | 10 tahun bekerja, apa harta anda? (studio, 2:34, 3D motion design, NO zoom) | `videos/09_apa_harta_anda.py` |
 | 10 | Galeri Public Gold walking tour (handheld, Bahasa Sarawak, 2:50, Fuji grade, NO subtitles, NO zoom) | `videos/10_galeri_public_gold.py` |
+| 11 | 10 gram emas dalam setahun (voiceover only, full motion graphics, light 'Apple ad' look, real gold/cash cut-outs, 1:48) | `videos/11_10_gram_emas_setahun.py` |
 
 User rule (video 5): **keeping the original context matters more than the under-2-minute target.** Don't cut a line that carries meaning just to hit 2:00; ask or keep it.
 Caption tokens `display~syllables` (e.g. `RM1.99~9`) show numbers compactly while keeping word timing. Music helpers: `music_ss` < 0 delays the track, and `music_tempo` stretches it (atempo, same pitch) so its natural ending lands on the outro.
@@ -105,4 +106,15 @@ Slow zoom-in (video 8): `zoom_vf()` / `slow_amt()` add an +8% zoom across a segm
 Bahasa Sarawak / walking vlog (video 10): spell captions by sound (e.g. *tok, mun, nangga, kami orang*), and send a word-by-word spelling list (`--words`, with timestamps and [?] marks) for the user to check. Keep only speech regions inside kept cues (silent walking is cut). Big camera moves at a cut get a faint white flash plus a soft whoosh. **Fujifilm-style grade** (`GRADE` in `10_galeri_public_gold.py`): low contrast, slightly brighter, lifted blacks, soft highlights, a little less saturation, teal shadows, warm mids, **no vignette** and no relight. The user asked for this video to have **no subtitles** (`CAPTIONS = False`). For names on screen, the user said to **follow the plaque/poster** when it differs from what is said ("ikut plak").
 
 **A/V sync (fixed on video 10):** snap every cut point to the frame grid, and render each segment with an exact frame count (`trim=end_frame=n`) and audio padded or trimmed to the same length (`apad,atrim=end_sample=...`). Otherwise each cut adds part of a frame, and with many cuts the picture drifts behind the voice (0.7s over 86 cuts). Check that `base.mov` video and audio durations match, and send a short `--clip` sync preview after a fix.
+
+**Voiceover motion-graphic videos (video 11):** the user records the script themselves (voice cloning isn't possible here). Cut retakes with the cue list and speech regions, and keep a short breath at scene ends. Look (from the user's reference clip, an Apple-style ad), using **no floating spheres** (the user removed them):
+- white studio background with bold black headlines that slide up
+- a frosted glass prompt bar that types itself
+- white pills with a **dashed pastel-gradient border** whose icon flips x to + (like "We, [gotchu]")
+- letter tiles that burst out in 3D
+- small product label cards with a blue button
+- push-in on every scene, plus a whip blur across cuts
+- real product photos (gold bar, cash) with backgrounds removed (`11_assets/cut_photos.py`: OpenCV GrabCut with a colour prior), floating with a smooth 3D sway, a soft ground shadow and a light sweep
+
+Subtitles are small phrase captions (Jost SemiBold 46 on a dark pill, current word gold). The user asked for CapCut's **Posterama** font, which is a licensed Monotype font, so the stand-in is **Jost** (OFL, `assets/fonts`). Send motion demos at 30 fps 720p with high quality, because 15 fps low-res demos looked choppy and pixelated to the user.
 
