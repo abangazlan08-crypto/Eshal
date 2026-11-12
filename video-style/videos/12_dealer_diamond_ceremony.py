@@ -485,7 +485,6 @@ def main():
     s_diamond = slam_text('DIAMOND RECOGNITION', 96)
     r1 = rank_card('Triple Star Pearl', 'Achiever diraikan')
     r2 = rank_card('Triple Star Jade', 'Achiever diraikan')
-    r3 = rank_card('Four Star Ruby', 'Achiever diraikan')
     p_selesai = fit_pill('Majlis selesai', icon=check_icon(56), size=54)
     p_balik = fit_pill('On the way balik Kuching', icon=plane_icon(60), size=50)
     p_kch = fit_pill('Sampai Kuching', icon=pin_icon(56), size=56)
@@ -515,7 +514,7 @@ def main():
     # tracker stops: 0 Kuching .. 3 Kuching (out times)
     trk = [(hook_e, T['sampai'], 0), (T['sampai'], T['arch'], 1), (T['arch'], T['balik'], 2),
            (T['balik'], T['kch'], 2.5), (T['kch'], cta_t, 3)]
-    pops = [T[k] for k in ('kl', 'sampai', 'arch', 'lead', 'song', 'r1', 'r2', 'r3', 'selesai',
+    pops = [T[k] for k in ('kl', 'sampai', 'arch', 'lead', 'song', 'r1', 'r2', 'selesai',
                            'balik', 'kch', 'mentor')] + [cta_t + 1.2, cta_t + 2.0]
     whooshes = [(0.0, 0.4, 0.24), (hook_e - 0.15, 0.35, 0.2), (T['diamond'] - 0.15, 0.35, 0.2),
                 (T['light'] - 0.1, 0.4, 0.24), (cta_t - 0.15, 0.45, 0.24)] + \
@@ -562,7 +561,6 @@ def main():
         slam(fr, s_diamond, CX, 420, T['diamond'] - 0.05, T['r1'] - 0.05)
         show(fr, r1, CX, 430, T['r1'], T['r2'] - 0.05)
         show(fr, r2, CX, 430, T['r2'], T['r3'] - 0.05)
-        show(fr, r3, CX, 430, T['r3'], T['r_end'] + 0.1)
         # upline mentor photo card (dim footage, slow push-in, gold shine)
         if T['mentor'] <= t < T['mentor_e']:
             tm = t - T['mentor']
