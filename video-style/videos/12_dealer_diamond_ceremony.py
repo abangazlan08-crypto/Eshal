@@ -114,6 +114,7 @@ PLAN = [
     (184.10, 187.10, 'broll', -4),   # laugh + walk off
     (117.40, 122.60, 'broll', -14),  # CTA over the stage
 ]
+CAPTIONS = False    # user (video 12): no subtitles
 ZOOM_TALK = 1.07     # punch-in on every other talk segment
 
 
@@ -558,7 +559,7 @@ def main():
             show(fr, c5, CX, 1070, cta_t + 1.9, base_dur)
             show(fr, c4, CX, 1210, cta_t + 2.6, base_dur)
         # captions
-        for w0, w1, w in cap_win:
+        for w0, w1, w in (cap_win if CAPTIONS else []):
             if w0 <= t < w1:
                 k = min(1, (t - w0) / 0.12)
                 place(fr, cap(w), CX, B.TT_CAPTION_Y, 0.85 + 0.15 * back_out(k), min(1, k * 2))
