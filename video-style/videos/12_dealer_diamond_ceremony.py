@@ -43,7 +43,8 @@ GRADE = ("eq=brightness=-0.02:contrast=1.08:saturation=1.10:gamma=0.98,"
          "curves=master='0/0 0.25/0.22 0.5/0.5 0.78/0.81 1/0.97'")
 MENTOR_IMG = os.path.join(WORK, 'mentor.jpg')   # user photo: with our upline mentor (not in git)
 MUSIC = os.environ.get('MUSIC', os.path.join(WORK, 'music.m4a'))
-MUSIC_SS, MUSIC_DB, MUSIC_TEMPO = 0.0, -15.0, 1.0
+# 'Technological Documentary (Loop)' (approved on video 6), kept soft per user ("jangan terlalu kuat")
+MUSIC_SS, MUSIC_DB, MUSIC_TEMPO = 0.0, -21.0, 1.0
 
 # Descript SRT cues (source seconds). Spelling to be checked by the user where marked [?].
 CUES = {
@@ -393,6 +394,16 @@ def mentor_card(w=720):
     return frame
 
 
+def mentor_name_card(w=760):
+    im = rounded((w, 190), 40, (16, 18, 34, 240))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([0, 0, 18, 190], 9, fill=GOLD + (255,))
+    d.text((52, 62), 'Dr Syafiq Roslan & isteri', font=font(F_XB, 52), fill=(255, 255, 255, 255), anchor='lm')
+    d.text((54, 134), 'Upline mentor kami  \u2022  5 Star Diamond', font=font(F_B, 36), fill=GOLD_L + (255,),
+           anchor='lm')
+    return with_shadow(im, 20, 10, 0.45)
+
+
 def write_word_list(words):
     lines = ['VIDEO 12 - Diamond Recognition Ceremony (vlog sehari)',
              'Tanda [?] = sila semak ejaan / bunyi. Masa = kedudukan dalam video siap.', '']
@@ -468,7 +479,6 @@ def main():
     # story
     p_kl = route_pill(['Kuching', 'KL'], 52, bg=(255, 255, 255, 245), fg=(20, 20, 30, 255), icon=plane_icon(60))
     p_sampai = fit_pill('Sampai KL', icon=pin_icon(56), size=56)
-    p_bfast = fit_pill('Breakfast dulu', icon=check_icon(56), size=54)
     p_event = fit_pill('Diamond Recognition Ceremony', icon=star_icon(56, (255, 255, 255)), size=46, bg=(232, 190, 92, 255))
     p_lead = fit_pill('Leadership & Achievers', icon=star_icon(56), size=52)
     q_song = quote_card(['Semulakan zaman ada', 'pemimpin yang kita idamkan'], 50)
@@ -476,13 +486,9 @@ def main():
     r1 = rank_card('Triple Star Pearl', 'Achiever diraikan')
     r2 = rank_card('Triple Star Jade', 'Achiever diraikan')
     r3 = rank_card('Four Star Ruby', 'Achiever diraikan')
-    u1 = slam_text('MEREKA DAH MULA.', 100)
-    u2 = slam_text('ANDA BILA?', 120, red=True)
     p_selesai = fit_pill('Majlis selesai', icon=check_icon(56), size=54)
     p_balik = fit_pill('On the way balik Kuching', icon=plane_icon(60), size=50)
     p_kch = fit_pill('Sampai Kuching', icon=pin_icon(56), size=56)
-    b_4am = slam_text('BANGUN 4 PAGI', 104)
-    q_bee = quote_pill('Ini lah life busy bee', 54)
     # CTA (urgency) - wording from the user
     c1 = text_sprite('ANDA MUNGKIN AKAN JADI', 60, (255, 255, 255), (255, 255, 255), stroke=6, stroke_col=(20, 16, 24))
     c2 = slam_text('DIAMOND', 170, maxw=760)
@@ -490,7 +496,7 @@ def main():
     c3 = fit_pill('Berminat nak explore bisnes Public Gold?', icon=star_icon(60, (255, 255, 255)), size=46, bg=(232, 190, 92, 255))
     c4 = fit_pill('Isi form di bawah', icon=arrow_icon(64, False, (110, 12, 26)), size=60, bg=RED + (255,))
     m_card = mentor_card()
-    m_pill = fit_pill('Bersama upline mentor kami', icon=star_icon(56), size=50)
+    m_pill = mentor_name_card()
     m_chip = chip('5 STAR DIAMOND', RED, 34)
     logo_c, logo_w = load_logos()
     wm = logo_w.resize((150, int(150 * logo_w.height / logo_w.width)), Image.LANCZOS)
@@ -509,10 +515,10 @@ def main():
     # tracker stops: 0 Kuching .. 3 Kuching (out times)
     trk = [(hook_e, T['sampai'], 0), (T['sampai'], T['arch'], 1), (T['arch'], T['balik'], 2),
            (T['balik'], T['kch'], 2.5), (T['kch'], cta_t, 3)]
-    pops = [T[k] for k in ('kl', 'sampai', 'bfast', 'arch', 'lead', 'song', 'r1', 'r2', 'r3', 'selesai',
-                           'balik', 'kch', 'bee', 'mentor')] + [cta_t + 1.2, cta_t + 2.0]
+    pops = [T[k] for k in ('kl', 'sampai', 'arch', 'lead', 'song', 'r1', 'r2', 'r3', 'selesai',
+                           'balik', 'kch', 'mentor')] + [cta_t + 1.2, cta_t + 2.0]
     whooshes = [(0.0, 0.4, 0.24), (hook_e - 0.15, 0.35, 0.2), (T['diamond'] - 0.15, 0.35, 0.2),
-                (T['light'] - 0.1, 0.4, 0.24), (T['empat'] - 0.15, 0.35, 0.2), (cta_t - 0.15, 0.45, 0.24)] + \
+                (T['light'] - 0.1, 0.4, 0.24), (cta_t - 0.15, 0.45, 0.24)] + \
                [(j - 0.12, 0.3, 0.12) for j in jumps] + [(base_dur - 0.15, 0.5, 0.22)]
 
     t = 0.0
@@ -550,7 +556,6 @@ def main():
                     break
         show(fr, p_kl, CX, 400, T['kl'], T['sampai'] - 0.1)
         show(fr, p_sampai, CX, 400, T['sampai'], ct(3, True) + 0.3)
-        show(fr, p_bfast, CX, 400, T['bfast'], ct(8, True))
         show(fr, p_event, CX, 400, T['arch'] + 0.2, T['mc'] - 0.1)
         show(fr, p_lead, CX, 400, T['lead'] - 0.1, ct(14, True) + 0.3)
         show(fr, q_song, CX, 420, T['song'] + 0.2, ct(15, True))
@@ -558,8 +563,6 @@ def main():
         show(fr, r1, CX, 430, T['r1'], T['r2'] - 0.05)
         show(fr, r2, CX, 430, T['r2'], T['r3'] - 0.05)
         show(fr, r3, CX, 430, T['r3'], T['r_end'] + 0.1)
-        slam(fr, u1, CX, 520, T['light'] + 0.05, T['light_e'])
-        slam(fr, u2, CX, 700, T['light'] + 1.2, T['light_e'], rot=3)
         # upline mentor photo card (dim footage, slow push-in, gold shine)
         if T['mentor'] <= t < T['mentor_e']:
             tm = t - T['mentor']
@@ -569,12 +572,10 @@ def main():
             card = shine(m_card, (tm - 1.0) / 1.2)
             place(fr, card, CX, 700, s_ * (1 + 0.035 * tm / dm), a_, rot=-2)
             show(fr, m_chip, CX - 190, 310, T['mentor'] + 0.6, T['mentor_e'], rot=-4)
-            show(fr, m_pill, CX, 1190, T['mentor'] + 0.9, T['mentor_e'])
+            show(fr, m_pill, CX, 1205, T['mentor'] + 0.9, T['mentor_e'])
         show(fr, p_selesai, CX, 400, T['selesai'] + 0.3, T['balik'] - 0.05)
         show(fr, p_balik, CX, 400, T['balik'], ct(23, True) + 0.3)
         show(fr, p_kch, CX, 400, T['kch'], ct(24, True) + 0.3)
-        slam(fr, b_4am, CX, 420, T['empat'] - 0.05, T['empat'] + 2.6)
-        show(fr, q_bee, CX, 420, T['bee'], T['end29'] + 1.4)
         # CTA (urgency)
         if t >= cta_t:
             tc = t - cta_t
@@ -600,6 +601,17 @@ def main():
                 fl = Image.new('RGBA', (W, H), (255, 255, 255, int(90 * (1 - (t - j) / 0.14))))
                 fr = Image.alpha_composite(fl, fr)
         return fr, True
+
+    if '--audio-preview' in sys.argv:
+        write_sfx(total, pops, whooshes, os.path.join(OUT, 'sfx.wav'))
+        fc = '[0:a]apad[v0];' + B.audio_mix_graph('[v0]', '[1:a]', total, '[2:a]', MUSIC_SS, MUSIC_DB,
+                                                   outro_at=base_dur, music_tempo=MUSIC_TEMPO)
+        outp = os.path.join(WORK, 'PREVIEW_audio_music.m4a')
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', os.path.join(OUT, 'base.mov'),
+                        '-i', os.path.join(OUT, 'sfx.wav'), '-i', MUSIC, '-filter_complex', fc, '-map', '[a]',
+                        '-t', f'{total}', '-c:a', 'aac', '-b:a', '160k', outp], check=True)
+        print('audio preview', outp)
+        return
 
     if '--demo' in sys.argv:
         i = sys.argv.index('--demo')
@@ -630,7 +642,7 @@ def main():
         shots = [('Hook', 1.6), ('Pergi KL', T['kl'] + 0.4), ('Sampai KL', T['sampai'] + 0.6),
                  ('Breakfast', T['bfast'] + 0.6), ('Majlis', T['arch'] + 1.0), ('MC', T['lead'] + 0.4),
                  ('Lagu', T['song'] + 1.2), ('Diamond', T['diamond'] + 0.6), ('Pearl', T['r1'] + 1.0),
-                 ('Jade', T['r2'] + 1.0), ('Ruby', T['r3'] + 1.5), ('Urgency', T['light'] + 2.0), ('Mentor', T['mentor'] + 2.4),
+                 ('Jade', T['r2'] + 1.0), ('Ruby', T['r3'] + 1.5), ('Light show', T['light'] + 2.0), ('Mentor', T['mentor'] + 2.4),
                  ('Selesai', T['selesai'] + 1.0), ('Balik', T['balik'] + 0.6), ('Kuching', T['kch'] + 1.0),
                  ('4 pagi', T['empat'] + 0.5), ('Busy bee', T['bee'] + 0.6), ('CTA', base_dur - 0.6),
                  ('Outro', base_dur + 1.6)]
