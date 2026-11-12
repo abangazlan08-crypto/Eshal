@@ -483,11 +483,12 @@ def main():
     p_kch = fit_pill('Sampai Kuching', icon=pin_icon(56), size=56)
     b_4am = slam_text('BANGUN 4 PAGI', 104)
     q_bee = quote_pill('Ini lah life busy bee', 54)
-    # CTA (urgency) - wording to be confirmed by the user
-    c1 = text_sprite('PENTAS SETERUSNYA', 84, (255, 255, 255), (255, 255, 255), stroke=6, stroke_col=(20, 16, 24))
-    c2 = slam_text('NAMA ANDA?', 140)
-    c3 = fit_pill('Jadi dealer Public Gold', icon=star_icon(60, (255, 255, 255)), size=56, bg=(232, 190, 92, 255))
-    c4 = fit_pill('DM "DEALER" kepada Azlan & Eza', icon=arrow_icon(60, False, (232, 150, 40)), size=46)
+    # CTA (urgency) - wording from the user
+    c1 = text_sprite('ANDA MUNGKIN AKAN JADI', 60, (255, 255, 255), (255, 255, 255), stroke=6, stroke_col=(20, 16, 24))
+    c2 = slam_text('DIAMOND', 170, maxw=760)
+    c2b = slam_text('SETERUSNYA', 112, maxw=700)
+    c3 = fit_pill('Berminat nak explore bisnes Public Gold?', icon=star_icon(60, (255, 255, 255)), size=46, bg=(232, 190, 92, 255))
+    c4 = fit_pill('Isi form di bawah', icon=arrow_icon(64, False, (110, 12, 26)), size=60, bg=RED + (255,))
     m_card = mentor_card()
     m_pill = fit_pill('Bersama upline mentor kami', icon=star_icon(56), size=50)
     m_chip = chip('5 STAR DIAMOND', RED, 34)
@@ -509,7 +510,7 @@ def main():
     trk = [(hook_e, T['sampai'], 0), (T['sampai'], T['arch'], 1), (T['arch'], T['balik'], 2),
            (T['balik'], T['kch'], 2.5), (T['kch'], cta_t, 3)]
     pops = [T[k] for k in ('kl', 'sampai', 'bfast', 'arch', 'lead', 'song', 'r1', 'r2', 'r3', 'selesai',
-                           'balik', 'kch', 'bee', 'mentor')] + [cta_t + 1.1, cta_t + 1.9, cta_t + 2.6]
+                           'balik', 'kch', 'bee', 'mentor')] + [cta_t + 1.2, cta_t + 2.0]
     whooshes = [(0.0, 0.4, 0.24), (hook_e - 0.15, 0.35, 0.2), (T['diamond'] - 0.15, 0.35, 0.2),
                 (T['light'] - 0.1, 0.4, 0.24), (T['empat'] - 0.15, 0.35, 0.2), (cta_t - 0.15, 0.45, 0.24)] + \
                [(j - 0.12, 0.3, 0.12) for j in jumps] + [(base_dur - 0.15, 0.5, 0.22)]
@@ -579,14 +580,12 @@ def main():
             tc = t - cta_t
             dim = Image.new('RGBA', (W, H), (8, 8, 16, int(150 * ease_out(min(1, tc / 0.5)))))
             fr.alpha_composite(dim)
-            show(fr, c1, CX, 560, cta_t + 0.25, base_dur)
-            slam(fr, c2, CX, 720, cta_t + 0.6, base_dur)
-            show(fr, c3, CX, 930, cta_t + 1.1, base_dur)
-            ang = tc * 2 * math.pi
-            c5 = fit_pill('Mula hari ini. Jangan tunggu.', icon=clock_icon(58, (255, 255, 255), ang), size=48,
-                          bg=RED + (255,))
-            show(fr, c5, CX, 1070, cta_t + 1.9, base_dur)
-            show(fr, c4, CX, 1210, cta_t + 2.6, base_dur)
+            show(fr, c1, CX, 555, cta_t + 0.25, base_dur)
+            slam(fr, c2, CX, 700, cta_t + 0.6, base_dur)
+            slam(fr, c2b, CX + 20, 830, cta_t + 0.85, base_dur)
+            show(fr, c3, CX, 990, cta_t + 1.2, base_dur)
+            bob = 14 * abs(math.sin(max(0, tc - 2.3) * 2 * math.pi / 0.9))     # arrow pill nudges down
+            show(fr, c4, CX, 1150 + bob, cta_t + 2.0, base_dur)
         # captions
         for w0, w1, w in (cap_win if CAPTIONS else []):
             if w0 <= t < w1:
