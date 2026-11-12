@@ -68,6 +68,7 @@ Note: videos 1–4 put captions at about 84–88% height, inside the bottom zone
 | 9 | 10 tahun bekerja, apa harta anda? (studio, 2:34, 3D motion design, NO zoom) | `videos/09_apa_harta_anda.py` |
 | 10 | Galeri Public Gold walking tour (handheld, Bahasa Sarawak, 2:50, Fuji grade, NO subtitles, NO zoom) | `videos/10_galeri_public_gold.py` |
 | 11 | 10 gram emas dalam setahun (voiceover only, full motion graphics, light 'Apple ad' look, real gold/cash cut-outs, 1:48) | `videos/11_10_gram_emas_setahun.py` |
+| 12 | Sehari ke Diamond Recognition Ceremony (day-trip vlog Kuching-KL-Kuching, Bahasa Sarawak, dealer-recruitment CTA, upline mentor photo, NO subtitles, 2:10) | `videos/12_dealer_diamond_ceremony.py` |
 
 User rule (video 5): **keeping the original context matters more than the under-2-minute target.** Don't cut a line that carries meaning just to hit 2:00; ask or keep it.
 Caption tokens `display~syllables` (e.g. `RM1.99~9`) show numbers compactly while keeping word timing. Music helpers: `music_ss` < 0 delays the track, and `music_tempo` stretches it (atempo, same pitch) so its natural ending lands on the outro.
@@ -118,3 +119,12 @@ Bahasa Sarawak / walking vlog (video 10): spell captions by sound (e.g. *tok, mu
 
 Subtitles are small phrase captions (Jost SemiBold 46 on a dark pill, current word gold). The user asked for CapCut's **Posterama** font, which is a licensed Monotype font, so the stand-in is **Jost** (OFL, `assets/fonts`). Send motion demos at 30 fps 720p with high quality, because 15 fps low-res demos looked choppy and pixelated to the user.
 
+
+**Dealer-recruitment vlog (video 12):** the user speaks Bahasa Sarawak here, so **no subtitles** (`CAPTIONS = False`) and no
+text pills built from the transcript (Descript mishears Sarawak words). Text the user approved or gave: hook "SEHARI / KE PENTAS
+DIAMOND", a Kuching-KL-Diamond Ceremony-Kuching journey tracker in the top band, the upline mentor photo card ("5 STAR
+DIAMOND", "Dr Syafiq Roslan & isteri", "Upline mentor kami"), and the CTA in the user's own words: "Anda mungkin akan jadi
+Diamond seterusnya" + "Berminat nak explore bisnes Public Gold?" + "Isi form di bawah" (form link goes in the post caption/bio).
+The user removed the rank cards (Triple Star Pearl/Jade, Four Star Ruby) and the "Mereka dah mula / Anda bila?" slam.
+Music: the video 6 track (Technological Documentary), kept soft (-21 dB, user: "jangan terlalu kuat").
+Poppins has no arrow glyph: use `route_pill()` (drawn arrows) for "A -> B" text.
