@@ -41,6 +41,7 @@ os.makedirs(OUT, exist_ok=True)
 GRADE = ("eq=brightness=-0.02:contrast=1.08:saturation=1.10:gamma=0.98,"
          "colorbalance=rs=0.02:bs=-0.03:rm=0.03:bm=-0.02:bh=0.02,"
          "curves=master='0/0 0.25/0.22 0.5/0.5 0.78/0.81 1/0.97'")
+MENTOR_IMG = os.path.join(WORK, 'mentor.jpg')   # user photo: with our upline mentor (not in git)
 MUSIC = os.environ.get('MUSIC', os.path.join(WORK, 'music.m4a'))
 MUSIC_SS, MUSIC_DB, MUSIC_TEMPO = 0.0, -15.0, 1.0
 
@@ -105,8 +106,7 @@ PLAN = [
     ('cue', 18, 21, 'talk', 0),      # achievers called up
     (95.50, 98.60, 'broll', -12),    # light show (loud)
     (100.20, 103.00, 'broll', -8),   # big screen
-    (123.50, 125.40, 'broll', -6),   # screen / celebration
-    (125.60, 127.60, 'broll', -4),   # award photo
+    (123.60, 127.60, 'broll', -6),   # celebration + award photo, under the upline-mentor photo card
     ('cue', 22, 23, 'talk', 0),      # selesai, on the way balik Kuching
     (136.40, 139.00, 'broll', -4),   # airport walk
     ('cue', 24, 24, 'talk', 0),      # sampai Kuching
@@ -379,6 +379,20 @@ def quote_card(lines, size=52, w=860):
     return with_shadow(im, 18, 8, 0.4)
 
 
+def mentor_card(w=720):
+    im = Image.open(MENTOR_IMG).convert('RGB')
+    iw, ih = im.size
+    im = im.crop((0, int(ih * 0.075), iw, int(ih * 0.86)))      # drop the empty floor
+    h = int(w * im.height / im.width)
+    im = im.resize((w, h), Image.LANCZOS).convert('RGBA')
+    m = Image.new('L', (w, h), 0)
+    ImageDraw.Draw(m).rounded_rectangle([0, 0, w - 1, h - 1], 28, fill=255)
+    im.putalpha(m)
+    frame = rounded((w + 28, h + 28), 38, (255, 255, 255, 255))
+    frame.alpha_composite(im, (14, 14))
+    return frame
+
+
 def write_word_list(words):
     lines = ['VIDEO 12 - Diamond Recognition Ceremony (vlog sehari)',
              'Tanda [?] = sila semak ejaan / bunyi. Masa = kedudukan dalam video siap.', '']
@@ -474,6 +488,9 @@ def main():
     c2 = slam_text('NAMA ANDA?', 140)
     c3 = fit_pill('Jadi dealer Public Gold', icon=star_icon(60, (255, 255, 255)), size=56, bg=(232, 190, 92, 255))
     c4 = fit_pill('DM "DEALER" kepada Azlan & Eza', icon=arrow_icon(60, False, (232, 150, 40)), size=46)
+    m_card = mentor_card()
+    m_pill = fit_pill('Bersama upline mentor kami', icon=star_icon(56), size=50)
+    m_chip = chip('5 STAR DIAMOND', RED, 34)
     logo_c, logo_w = load_logos()
     wm = logo_w.resize((150, int(150 * logo_w.height / logo_w.width)), Image.LANCZOS)
 
@@ -486,11 +503,13 @@ def main():
     i_light = [i for i, s in enumerate(SEGS) if s[0] == 95.5][0]
     T['light'] = offs[i_light]
     T['light_e'] = offs[i_light + 2]
+    i_m = [i for i, s_ in enumerate(SEGS) if s_[0] == 123.6][0]
+    T['mentor'], T['mentor_e'] = offs[i_m], offs[i_m + 1]
     # tracker stops: 0 Kuching .. 3 Kuching (out times)
     trk = [(hook_e, T['sampai'], 0), (T['sampai'], T['arch'], 1), (T['arch'], T['balik'], 2),
            (T['balik'], T['kch'], 2.5), (T['kch'], cta_t, 3)]
     pops = [T[k] for k in ('kl', 'sampai', 'bfast', 'arch', 'lead', 'song', 'r1', 'r2', 'r3', 'selesai',
-                           'balik', 'kch', 'bee')] + [cta_t + 1.1, cta_t + 1.9, cta_t + 2.6]
+                           'balik', 'kch', 'bee', 'mentor')] + [cta_t + 1.1, cta_t + 1.9, cta_t + 2.6]
     whooshes = [(0.0, 0.4, 0.24), (hook_e - 0.15, 0.35, 0.2), (T['diamond'] - 0.15, 0.35, 0.2),
                 (T['light'] - 0.1, 0.4, 0.24), (T['empat'] - 0.15, 0.35, 0.2), (cta_t - 0.15, 0.45, 0.24)] + \
                [(j - 0.12, 0.3, 0.12) for j in jumps] + [(base_dur - 0.15, 0.5, 0.22)]
@@ -518,7 +537,7 @@ def main():
             show(fr, h2, CX + 10, 440, 0.25, hook_e, rot=-4)
             show(fr, h_chip, CX, 560, 0.7, hook_e)
         # journey tracker (top band)
-        if hook_e <= t < cta_t:
+        if hook_e <= t < cta_t and not (T['mentor'] <= t < T['mentor_e']):
             for a, b, st in trk:
                 if a <= t < b:
                     act = int(st)
@@ -540,6 +559,16 @@ def main():
         show(fr, r3, CX, 430, T['r3'], T['r_end'] + 0.1)
         slam(fr, u1, CX, 520, T['light'] + 0.05, T['light_e'])
         slam(fr, u2, CX, 700, T['light'] + 1.2, T['light_e'], rot=3)
+        # upline mentor photo card (dim footage, slow push-in, gold shine)
+        if T['mentor'] <= t < T['mentor_e']:
+            tm = t - T['mentor']
+            dm = T['mentor_e'] - T['mentor']
+            fr.alpha_composite(Image.new('RGBA', (W, H), (8, 8, 16, int(140 * min(1, tm / 0.3, (dm - tm) / 0.2)))))
+            s_, a_ = pop(t, T['mentor'] + 0.1, T['mentor_e'], dur_in=0.4)
+            card = shine(m_card, (tm - 1.0) / 1.2)
+            place(fr, card, CX, 700, s_ * (1 + 0.035 * tm / dm), a_, rot=-2)
+            show(fr, m_chip, CX - 190, 310, T['mentor'] + 0.6, T['mentor_e'], rot=-4)
+            show(fr, m_pill, CX, 1190, T['mentor'] + 0.9, T['mentor_e'])
         show(fr, p_selesai, CX, 400, T['selesai'] + 0.3, T['balik'] - 0.05)
         show(fr, p_balik, CX, 400, T['balik'], ct(23, True) + 0.3)
         show(fr, p_kch, CX, 400, T['kch'], ct(24, True) + 0.3)
@@ -565,7 +594,7 @@ def main():
                 place(fr, cap(w), CX, B.TT_CAPTION_Y, 0.85 + 0.15 * back_out(k), min(1, k * 2))
                 break
         # watermark (left side, clear of the action rail)
-        if hook_e <= t < cta_t:
+        if hook_e <= t < cta_t and not (T['mentor'] <= t < T['mentor_e']):
             place(fr, wm, 95, 1010, 1, 0.9)
         for j in jumps:
             if j <= t < j + 0.14:
@@ -602,7 +631,7 @@ def main():
         shots = [('Hook', 1.6), ('Pergi KL', T['kl'] + 0.4), ('Sampai KL', T['sampai'] + 0.6),
                  ('Breakfast', T['bfast'] + 0.6), ('Majlis', T['arch'] + 1.0), ('MC', T['lead'] + 0.4),
                  ('Lagu', T['song'] + 1.2), ('Diamond', T['diamond'] + 0.6), ('Pearl', T['r1'] + 1.0),
-                 ('Jade', T['r2'] + 1.0), ('Ruby', T['r3'] + 1.5), ('Urgency', T['light'] + 2.0),
+                 ('Jade', T['r2'] + 1.0), ('Ruby', T['r3'] + 1.5), ('Urgency', T['light'] + 2.0), ('Mentor', T['mentor'] + 2.4),
                  ('Selesai', T['selesai'] + 1.0), ('Balik', T['balik'] + 0.6), ('Kuching', T['kch'] + 1.0),
                  ('4 pagi', T['empat'] + 0.5), ('Busy bee', T['bee'] + 0.6), ('CTA', base_dur - 0.6),
                  ('Outro', base_dur + 1.6)]
