@@ -68,6 +68,7 @@ Note: videos 1–4 put captions at about 84–88% height, inside the bottom zone
 | 9 | 10 tahun bekerja, apa harta anda? (studio, 2:34, 3D motion design, NO zoom) | `videos/09_apa_harta_anda.py` |
 | 10 | Galeri Public Gold walking tour (handheld, Bahasa Sarawak, 2:50, Fuji grade, NO subtitles, NO zoom) | `videos/10_galeri_public_gold.py` |
 | 11 | 10 gram emas dalam setahun (voiceover only, full motion graphics, light 'Apple ad' look, real gold/cash cut-outs, 1:48) | `videos/11_10_gram_emas_setahun.py` |
+| 12 | NDO Fizikal Kuching lifestyle montage (3 clips + 4 photos, NO subtitles, natural audio, whip-blur cuts, polaroids, framed group clip, 0:38) | `videos/12_ndo_fizikal_kuching.py` |
 
 User rule (video 5): **keeping the original context matters more than the under-2-minute target.** Don't cut a line that carries meaning just to hit 2:00; ask or keep it.
 Caption tokens `display~syllables` (e.g. `RM1.99~9`) show numbers compactly while keeping word timing. Music helpers: `music_ss` < 0 delays the track, and `music_tempo` stretches it (atempo, same pitch) so its natural ending lands on the outro.
