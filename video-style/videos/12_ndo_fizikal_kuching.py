@@ -23,7 +23,8 @@ RAWD = os.path.join(WORK, 'raw')
 OUT = os.path.join(WORK, 'out')
 os.makedirs(OUT, exist_ok=True)
 V1, V2, V3 = (os.path.join(RAWD, f) for f in ('v1.mov', 'v2.mov', 'v3.mp4'))
-P_GROUP1, P_GROUP2, P_CLASS, P_LOBBY = (os.path.join(RAWD, f) for f in ('p1.jpg', 'p2.jpg', 'p3.jpg', 'p4.jpg'))
+# p3.jpg (class photo) was removed at the user's request.
+P_GROUP1, P_GROUP2, P_LOBBY = (os.path.join(RAWD, f) for f in ('p1.jpg', 'p2.jpg', 'p4.jpg'))
 
 # Bright, clean lifestyle grade: gentle contrast, warm mids, a touch of saturation (white training room).
 GRADE = ("eq=contrast=1.06:saturation=1.10:gamma=0.97,"
@@ -35,7 +36,6 @@ SCENES = [
     dict(kind='vid', src=V1, a=0.20, d=2.40, audio=(V1, 0.20)),          # presenter opens
     dict(kind='photo', src=P_LOBBY, d=2.20, audio=(V1, 2.60), kb=(1.00, 1.09, 0.55, 0.45)),
     dict(kind='vid', src=V1, a=4.80, d=3.00, audio=(V1, 4.80)),          # pan across participants
-    dict(kind='photo', src=P_CLASS, d=2.20, audio=(V1, 7.80), kb=(1.09, 1.00, 0.50, 0.55)),
     dict(kind='vid', src=V1, a=10.0, d=3.40, audio=(V1, 10.0)),
     dict(kind='vid', src=V2, a=5.50, d=4.00, audio=(V2, 5.50)),          # presenter walks the room
     dict(kind='vid', src=V2, a=12.0, d=3.80, audio=(V2, 12.0)),
@@ -257,7 +257,7 @@ def build_audio(path):
     sfx = os.path.join(OUT, 'sfx.wav')
     cuts = SC_T0[1:-1]
     whoosh = [(c - 0.18, 0.36, 0.05) for c in cuts] + [(NMAIN / FPS - 0.2, 0.6, 0.08)]
-    pops = [SC_T0[1] + 0.15, SC_T0[2] + 0.3, SC_T0[8] + 0.05, SC_T0[8] + 0.95, SC_T0[9] + 1.6]
+    pops = [SC_T0[1] + 0.15, SC_T0[2] + 0.3, SC_T0[7] + 0.05, SC_T0[7] + 0.95, SC_T0[8] + 1.6]
     write_sfx(TOTAL, pops, whoosh, sfx)
     g = audio_mix_graph('[0:a]', '[1:a]', TOTAL, outro_at=NMAIN / FPS)
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', voice, '-i', sfx, '-filter_complex', g, '-map', '[a]',
