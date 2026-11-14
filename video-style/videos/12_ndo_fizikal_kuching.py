@@ -33,13 +33,14 @@ GRADE = ("eq=contrast=1.06:saturation=1.10:gamma=0.97,"
 # Scene list. kind: 'vid' (full-bleed vertical clip), 'photo' (Ken Burns), 'polaroid', 'card' (framed clip).
 # audio = (file, start): the natural sound under the scene (J/L-cuts keep the room sound continuous).
 SCENES = [
-    dict(kind='vid', src=V1, a=0.20, d=2.40, audio=(V1, 0.20)),          # presenter opens
-    dict(kind='photo', src=P_LOBBY, d=2.20, audio=(V1, 2.60), kb=(1.00, 1.09, 0.55, 0.45)),
-    dict(kind='vid', src=V1, a=4.80, d=3.00, audio=(V1, 4.80)),          # pan across participants
-    dict(kind='vid', src=V1, a=10.0, d=3.40, audio=(V1, 10.0)),
+    dict(kind='vid', src=V1, a=0.20, d=2.40, audio=(V1, 0.20), tag='title'),          # presenter opens
+    dict(kind='vid', src=V1, a=4.80, d=3.00, audio=(V1, 4.80), tag='loc'),   # pan across participants
+    dict(kind='vid', src=V1, a=10.0, d=3.40, audio=(V1, 10.0), tag='cal'),
     dict(kind='vid', src=V2, a=5.50, d=4.00, audio=(V2, 5.50)),          # presenter walks the room
     dict(kind='vid', src=V2, a=12.0, d=3.80, audio=(V2, 12.0)),
     dict(kind='vid', src=V1, a=17.0, d=2.40, audio=(V1, 17.0)),
+    # user: lobby photo moved towards the end, captioned "Sesi Private coaching dengan dealer"
+    dict(kind='photo', src=P_LOBBY, d=2.80, audio=(V2, 0.0), kb=(1.00, 1.09, 0.55, 0.45), tag='coach'),
     dict(kind='polaroid', d=2.80, audio=(V3, 0.0)),                     # group photos drop in
     dict(kind='card', src=V3, a=2.80, d=7.80, audio=(V3, 2.80), gain=-5),  # group wave
 ]
@@ -104,6 +105,19 @@ def polaroid(path, pw=720, cap=None):
     return with_shadow(im, 24, 14, 0.5)
 
 
+def caption_card(line1, line2):
+    """Two-line white caption card (brand-red accent bar) for longer captions."""
+    f1, f2 = B.font(F_XB, 60), B.font(F_B, 50)
+    w = int(max(f1.getlength(line1), f2.getlength(line2))) + 110
+    h = 190
+    im = rounded((w, h), 34, (255, 255, 255, 248))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([26, 34, 38, h - 34], 6, fill=RED + (255,))
+    d.text((64, 62), line1, font=f1, fill=(20, 20, 30, 255), anchor='lm')
+    d.text((64, 134), line2, font=f2, fill=RED + (255,), anchor='lm')
+    return with_shadow(im, 18, 10, 0.4)
+
+
 def whip_blur(arr, k, direction=1):
     """Horizontal motion blur of strength k (0..1), plus a slide in `direction`."""
     if k <= 0.01:
@@ -135,6 +149,7 @@ def frames(preview_stills=None):
     l1, l2 = title_sprites()
     loc = fit_pill('NDO Fizikal  •  Kuching', icon=pin_icon(54), size=50)
     city = fit_pill('Kuching, Sarawak', icon=pin_icon(54), size=50)
+    coach = caption_card('Sesi Private coaching', 'dengan dealer')
     cal = fit_pill('Setiap minggu ke-2', icon=cal_icon(50), size=48)
     bye = text_sprite('Sampai jumpa lagi!', 84, (255, 255, 255), (247, 228, 160), stroke=6, stroke_col=(20, 20, 30))
     ndo = text_sprite('NDO FIZIKAL', 110, RED, (150, 20, 36), stroke=9, stroke_col=(255, 255, 255))
@@ -184,16 +199,20 @@ def frames(preview_stills=None):
             fr = Image.fromarray(base).convert('RGBA')
 
             # ---- scene overlays
-            if si == 0:
+            tag = sc.get('tag')
+            if tag == 'title':
                 s1, a1 = pop(t, 0.15, 2.40, 0.40, 0.01)
                 s2, a2 = pop(t, 0.45, 2.40, 0.40, 0.01)
                 place(fr, l1, TT_CENTER_X - 40, 330, s1, a1, rot=4)
                 place(fr, l2, TT_CENTER_X + 20, 450, s2, a2, rot=4)
-            if si == 1:
-                s, a = pop(t, 0.15, 2.20, 0.35, 0.01)
+            if tag == 'loc':
+                s, a = pop(t, 0.20, 2.90, 0.35, 0.20)
                 place(fr, loc, TT_CENTER_X, 330, s, a)
-            if si == 2:
-                s, a = pop(t, 0.30, 2.90, 0.35, 0.20)
+            if tag == 'coach':
+                s, a = pop(t, 0.20, sc['d'], 0.35, 0.01)
+                place(fr, coach, TT_CENTER_X, 360, s, a)
+            if tag == 'cal':
+                s, a = pop(t, 0.30, 3.30, 0.35, 0.20)
                 place(fr, cal, TT_CENTER_X, 330, s, a)
             if sc['kind'] == 'polaroid':
                 for spr, tin, rot, dx, dy in ((pol1, 0.0, -6, -18, -10), (pol2, 0.9, 5, 22, 40)):
@@ -257,7 +276,7 @@ def build_audio(path):
     sfx = os.path.join(OUT, 'sfx.wav')
     cuts = SC_T0[1:-1]
     whoosh = [(c - 0.18, 0.36, 0.05) for c in cuts] + [(NMAIN / FPS - 0.2, 0.6, 0.08)]
-    pops = [SC_T0[1] + 0.15, SC_T0[2] + 0.3, SC_T0[7] + 0.05, SC_T0[7] + 0.95, SC_T0[8] + 1.6]
+    pops = [SC_T0[1] + 0.2, SC_T0[2] + 0.3, SC_T0[6] + 0.2, SC_T0[7] + 0.05, SC_T0[7] + 0.95, SC_T0[8] + 1.6]
     write_sfx(TOTAL, pops, whoosh, sfx)
     g = audio_mix_graph('[0:a]', '[1:a]', TOTAL, outro_at=NMAIN / FPS)
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', voice, '-i', sfx, '-filter_complex', g, '-map', '[a]',
