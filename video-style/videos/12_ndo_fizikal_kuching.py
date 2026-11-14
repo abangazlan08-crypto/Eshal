@@ -151,7 +151,13 @@ def frames(preview_stills=None):
     city = fit_pill('Kuching, Sarawak', icon=pin_icon(54), size=50)
     coach = caption_card('Sesi Private coaching', 'dengan dealer')
     cal = fit_pill('Setiap minggu ke-2', icon=cal_icon(50), size=48)
-    bye = text_sprite('Sampai jumpa lagi!', 84, (255, 255, 255), (247, 228, 160), stroke=6, stroke_col=(20, 20, 30))
+    # user: closing line "Yang nak explore bisnes Public Gold boleh join kami!" (2 lines, shrunk to the safe width)
+    lines = ('Yang nak explore bisnes', 'Public Gold boleh join kami!')
+    sz = 80          # one size for both lines: shrink until the longer line fits the safe width
+    while sz > 40 and max(B.font(F_XB, sz).getlength(ln) + 12 for ln in lines) > 840:
+        sz -= 2
+    bye = [text_sprite(ln, sz, (255, 255, 255), (247, 228, 160), stroke=6, stroke_col=(20, 20, 30))
+           for ln in lines]
     ndo = text_sprite('NDO FIZIKAL', 110, RED, (150, 20, 36), stroke=9, stroke_col=(255, 255, 255))
     pol1, pol2 = polaroid(P_GROUP1, cap='Kuching'), polaroid(P_GROUP2, cap='NDO Fizikal')
     photos = {}
@@ -236,7 +242,9 @@ def frames(preview_stills=None):
                 s, a = pop(t, 0.3, sc['d'], 0.35, 0.01)
                 place(fr, city, TT_CENTER_X, 480, s, a)
                 s, a = pop(t, 1.6, sc['d'], 0.45, 0.01)
-                place(fr, bye, TT_CENTER_X, 1310, s, a, rot=-2)
+                s2, a2 = pop(t, 1.85, sc['d'], 0.45, 0.01)
+                place(fr, bye[0], TT_CENTER_X, 1270, s, a, rot=-2)
+                place(fr, bye[1], TT_CENTER_X, 1375, s2, a2, rot=-2)
             place(fr, wm, 95 + 40, 1010, 1, 1)
 
             out = np.asarray(fr.convert('RGB'))
