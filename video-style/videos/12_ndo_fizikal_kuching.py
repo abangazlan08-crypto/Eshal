@@ -88,8 +88,8 @@ CARD_H = int(round(CARD_W * 480 / 848 / 2)) * 2      # v3 is 848x480 landscape
 
 # ---------------------------------------------------------------- graphics
 def title_sprites():
-    l1 = text_sprite('RUTIN SETIAP', 92, RED, (150, 20, 36), stroke=10, stroke_col=(255, 255, 255))
-    l2 = text_sprite('MINGGU KE-2', 124, (255, 255, 255), (247, 228, 160), stroke=8, stroke_col=(20, 20, 30))
+    l1 = text_sprite('RUTIN MINGGU KE-2', 78, RED, (150, 20, 36), stroke=10, stroke_col=(255, 255, 255))
+    l2 = text_sprite('SETIAP BULAN', 118, (255, 255, 255), (247, 228, 160), stroke=8, stroke_col=(20, 20, 30))
     return l1, l2
 
 
@@ -150,9 +150,9 @@ def frames(preview_stills=None):
     loc = fit_pill('NDO Fizikal  •  Kuching', icon=pin_icon(54), size=50)
     city = fit_pill('Kuching, Sarawak', icon=pin_icon(54), size=50)
     coach = caption_card('Sesi Private coaching', 'dengan dealer')
-    cal = fit_pill('Setiap minggu ke-2', icon=cal_icon(50), size=48)
+    cal = fit_pill('New Dealer Orientation (NDO)', icon=cal_icon(50), size=48)
     # user: closing line "Yang nak explore bisnes Public Gold boleh join kami!" (2 lines, shrunk to the safe width)
-    lines = ('Yang nak explore bisnes', 'Public Gold boleh join kami!')
+    lines = ('Berminat explore bisnes', 'Public Gold DM kami!')   # user's final wording
     sz = 80          # one size for both lines: shrink until the longer line fits the safe width
     while sz > 40 and max(B.font(F_XB, sz).getlength(ln) + 12 for ln in lines) > 840:
         sz -= 2
