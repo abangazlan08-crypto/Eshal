@@ -419,7 +419,7 @@ function viewRound(id) {
     const halves = n === 18 ? [[0, 9, 'Out'], [9, 18, 'In']] : [[0, 9, 'Tot']];
     const strokes = r.players.map((rp) => playerStats(r, rp).strokes);
     const track = db.settings.trackShots !== false;
-    $('#r-card').innerHTML = halves.map(([a, b, label]) => {
+    const html = halves.map(([a, b, label]) => {
       const holes = [...Array(b - a)].map((_, k) => a + k);
       const cell = (row, i, val, cls = '', extra = '') => `<td class="${ocrCells.has(row + ':' + i) ? 'ocr' : ''}">${extra}<input inputmode="numeric" pattern="[0-9]*" type="number" data-row="${row}" data-i="${i}" value="${val ?? ''}" class="${cls}"></td>`;
       const playerRows = r.players.map((rp, pi) => {
@@ -462,6 +462,9 @@ function viewRound(id) {
     }).join('');
     $('#r-ocrnote').style.display = ocrCells.size ? '' : 'none';
     $('#r-legend').style.display = track ? '' : 'none';
+    const box = $('#r-card'); const sig = `${n}|${r.players.length}|${track}`;
+    if (box.dataset.sig === sig && patchCard(box, html)) return;
+    box.dataset.sig = sig; box.innerHTML = html;
     $$('#r-card .drv').forEach((btn) => (btn.onclick = () => {
       const rp = r.players[+btn.dataset.p]; const i = +btn.dataset.i; rp.drives = rp.drives || [];
       const cycle = ['', 'F', 'R', 'H']; rp.drives[i] = cycle[(cycle.indexOf(rp.drives[i] || '') + 1) % cycle.length] || null;
@@ -470,13 +473,18 @@ function viewRound(id) {
     $$('#r-card input').forEach((inp) => {
       inp.addEventListener('change', onCellChange);
       inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); focusNext(inp); } });
+      // move to the next hole straight after typing, without the page jumping
+      inp.addEventListener('input', () => { const v = inp.value; if (v.length >= 2 || (v.length === 1 && (v !== '1' || inp.dataset.row[0] === 'u'))) focusNext(inp); });
       inp.addEventListener('focus', () => inp.select());
     });
   }
   function focusNext(inp) {
     const all = $$('#r-card input'); const row = inp.dataset.row; const i = +inp.dataset.i;
     const next = all.find((x) => x.dataset.row === row && +x.dataset.i === i + 1);
-    (next || all[all.indexOf(inp) + 1])?.focus();
+    if (!next) { inp.blur(); return; } // end of the row: close the keyboard, stay where we are
+    next.focus({ preventScroll: true });
+    const wrap = next.closest('.sc-wrap'); // only slide the card sideways if the next hole is hidden
+    if (wrap) { const c = next.getBoundingClientRect(), w = wrap.getBoundingClientRect(); if (c.right > w.right - 4 || c.left < w.left + 100) wrap.scrollLeft += c.left - w.left - 110; }
   }
   function onCellChange(e) {
     const { row, i } = e.target.dataset; const v = num(e.target.value);
@@ -486,8 +494,6 @@ function viewRound(id) {
     ocrCells.delete(row + ':' + i);
     if (row === 'par') refreshHcps(); // par total changes course handicap when no rating is set
     touch(); renderCard(); renderSummary();
-    // keep the flow: jump to the next box after typing a score
-    const nxt = $(`#r-card input[data-row="${row}"][data-i="${+i + 1}"]`); if (nxt && v != null && /^[pu]/.test(row)) nxt.focus();
   }
 
   function renderSummary() {
@@ -545,7 +551,7 @@ function viewRound(id) {
       ${r.players.map((rp) => { const s = playerStats(r, rp); return `<p><strong>${esc(rp.name)}</strong>: ${s.gross} gross (${vsPar(s.toPar)}), net ${s.net ?? '–'}, ${s.pts} pts${s.diff != null ? `, differential ${fmt1(s.diff)}` : ''}</p>`; }).join('')}
       <h3>Handicaps</h3>
       ${changes.length ? changes.map((c) => `<p>${esc(c.name)}: ${fmtHcp(c.from)} → <strong>${fmtHcp(c.to)}</strong></p>`).join('') : '<p class="muted">No handicap changes.</p>'}
-      <button class="btn primary block" id="m-ok">OK</button>`, (s) => ($('#m-ok', s).onclick = () => { closeModal(); render(); }));
+      <button class="btn primary block" id="m-ok">OK</button>`, (s) => ($('#m-ok', s).onclick = () => { closeModal(); const y = window.scrollY; render(); window.scrollTo(0, y); }));
   };
   $('#r-delete').onclick = async () => {
     if (!(await confirmBox('Delete this round and its photos? This cannot be undone (unless you have a backup).'))) return;
@@ -555,6 +561,29 @@ function viewRound(id) {
 
   ocrCells = new Set();
   renderHcps(); renderCard(); renderSummary(); renderPhotos();
+}
+
+// Copy a freshly built card into the existing one cell by cell, leaving inputs (and focus/scroll) in place.
+function patchCard(box, html) {
+  const tmp = document.createElement('div'); tmp.innerHTML = html;
+  const olds = $$('td, th', box), news = $$('td, th', tmp);
+  if (olds.length !== news.length) return false;
+  for (let k = 0; k < olds.length; k++) {
+    const o = olds[k], nw = news[k];
+    if (o.className !== nw.className) o.className = nw.className;
+    const oi = o.querySelector('input'), ni = nw.querySelector('input');
+    if (oi && ni) {
+      if (oi.dataset.row !== ni.dataset.row || oi.dataset.i !== ni.dataset.i) return false;
+      if (oi.className !== ni.className) oi.className = ni.className;
+      const v = ni.getAttribute('value') || '';
+      if (document.activeElement !== oi && oi.value !== v) oi.value = v;
+      continue;
+    }
+    const ob = o.querySelector('button'), nb = nw.querySelector('button');
+    if (ob && nb) { if (ob.className !== nb.className) ob.className = nb.className; if (ob.textContent !== nb.textContent) ob.textContent = nb.textContent; continue; }
+    if (o.innerHTML !== nw.innerHTML) o.innerHTML = nw.innerHTML;
+  }
+  return true;
 }
 
 /* ---------------- photo + OCR ---------------- */
