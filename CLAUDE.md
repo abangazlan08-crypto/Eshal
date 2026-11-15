@@ -17,3 +17,6 @@ Voiceover / full motion-graphic videos (user rule, video 11): use the same setti
 spheres, real product photos with backgrounds removed, small Jost subtitles, smooth 30 fps motion, and
 30 fps 720p demo previews. See the video 11 notes in `video-style/STYLE.md`.
 
+
+## Golf scorecard app
+`golf-scorecard/` is a separate, offline golf score and handicap app (a static web app with on-device OCR). See its README.
