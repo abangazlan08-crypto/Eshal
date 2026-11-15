@@ -262,7 +262,7 @@ function viewNewRound() {
         <div class="grid3">
           <label class="field">Holes<select id="nr-holes"><option>18</option><option>9</option></select></label>
           <label class="field">Tee (optional)<input type="text" id="nr-tee" placeholder="Blue"></label>
-          <label class="field">&nbsp;<span class="muted small">Par &amp; hole handicap can be set on the card or read from the photo.</span></label>
+          <label class="field">&nbsp;<span class="muted small">Par &amp; index can be set on the card or read from the photo.</span></label>
         </div>
       </div>
       <div id="nr-coursehint" class="muted small"></div>
@@ -381,7 +381,7 @@ function viewRound(id) {
       <button class="btn primary grow" id="r-finish">${r.finished ? 'Save changes & update handicaps' : 'Finish round & update handicaps'}</button>
       <button class="btn danger" id="r-delete">Delete</button>
     </div>
-    <p class="muted small">Course par, hole handicap, rating and slope are remembered for “${esc(r.courseName)}” next time.</p>`;
+    <p class="muted small">Course par, index, rating and slope are remembered for “${esc(r.courseName)}” next time.</p>`;
 
   const persistCourse = () => {
     let c = getCourse(r.courseId);
@@ -407,7 +407,7 @@ function viewRound(id) {
         <label class="field">${esc(rp.name)} — handicap<input type="number" step="0.1" class="h-idx" value="${rp.index ?? ''}"></label>
         <label class="field">Course handicap<input type="number" class="h-ch" value="${rp.courseHcp ?? ''}"></label>
         <label class="field">&nbsp;<span class="muted small">Record: ${fmtHcp(getPlayer(rp.playerId)?.index)}</span></label>
-      </div>`).join('') + `<p class="muted small" style="margin:0">Changing the handicap here only affects this game. To change a player's saved handicap, go to Players. The Hcp stroke row on the card is each hole's difficulty (1 = hardest). Each player's “Hcp stroke” row shows the strokes they get on each hole from their course handicap.</p>`;
+      </div>`).join('') + `<p class="muted small" style="margin:0">Changing the handicap here only affects this game. To change a player's saved handicap, go to Players. The Index row on the card is each hole's difficulty (1 = hardest). Each player's “Strokes” row shows the handicap strokes they get on each hole.</p>`;
     $$('#r-hcps [data-i]').forEach((el) => {
       const rp = r.players[+el.dataset.i];
       $('.h-idx', el).onchange = (e) => { rp.index = num(e.target.value) ?? 0; rp.hcpLocked = false; rp.courseHcp = courseHandicap(rp.index, r); touch(); renderHcps(); renderCard(); renderSummary(); };
@@ -436,7 +436,7 @@ function viewRound(id) {
           const st = strokes[pi]; const all = [...Array(n).keys()];
           const stSum = (list) => sum(list.map((i) => st[i]));
           const fmtSt = (v) => (v > 0 ? v : v < 0 ? '+' + -v : '');
-          html += `<tr class="sub hs"><td class="name muted">↳ Hcp stroke</td>${holes.map((i) => `<td class="${st[i] ? 'got' : ''}">${fmtSt(st[i])}</td>`).join('')}<td class="tot">${stSum(holes) || ''}</td>${n === 18 && b === 18 ? `<td class="tot">${stSum(all) || ''}</td>` : ''}</tr>`;
+          html += `<tr class="sub hs"><td class="name muted">↳ Strokes</td>${holes.map((i) => `<td class="${st[i] ? 'got' : ''}">${fmtSt(st[i])}</td>`).join('')}<td class="tot">${stSum(holes) || ''}</td>${n === 18 && b === 18 ? `<td class="tot">${stSum(all) || ''}</td>` : ''}</tr>`;
         }
         if (track) {
           rp.drives = rp.drives || []; rp.putts = rp.putts || [];
@@ -456,7 +456,7 @@ function viewRound(id) {
       return `<div class="sc-wrap" style="margin-bottom:10px"><table class="sc">
         <tr><th class="name">Hole</th>${holes.map((i) => `<th>${i + 1}</th>`).join('')}<th>${label}</th>${n === 18 && b === 18 ? '<th>Tot</th>' : ''}</tr>
         <tr class="meta"><td class="name muted">Par</td>${holes.map((i) => cell('par', i, r.par[i])).join('')}<td class="tot">${parTot || ''}</td>${n === 18 && b === 18 ? `<td class="tot">${sum(r.par.slice(0, 18).map(num)) || ''}</td>` : ''}</tr>
-        <tr class="meta"><td class="name muted">Hcp stroke</td>${holes.map((i) => cell('si', i, r.si[i])).join('')}<td class="tot"></td>${n === 18 && b === 18 ? '<td class="tot"></td>' : ''}</tr>
+        <tr class="meta"><td class="name muted">Index</td>${holes.map((i) => cell('si', i, r.si[i])).join('')}<td class="tot"></td>${n === 18 && b === 18 ? '<td class="tot"></td>' : ''}</tr>
         ${playerRows}
       </table></div>`;
     }).join('');
@@ -496,7 +496,7 @@ function viewRound(id) {
     </table></div>
     ${db.settings.trackShots !== false ? `<div class="sc-wrap" style="margin-top:10px"><table class="summary"><tr><th>Player</th><th>Fairway</th><th>Rough</th><th>Hazard</th><th>Putts</th><th>GIR</th></tr>
       ${r.players.map((rp) => { const s = playerStats(r, rp); const pc = (a, b) => (b ? `${a}/${b}` : '–'); return `<tr><td><strong>${esc(rp.name)}</strong></td><td>${pc(s.fw, s.driveHoles)}</td><td>${s.driveHoles ? s.rough : '–'}</td><td>${s.driveHoles ? s.haz : '–'}</td><td>${s.puttHoles ? s.puttTot : '–'}${s.puttHoles ? `<br><span class="muted small">${(s.puttTot / s.puttHoles).toFixed(1)}/hole</span>` : ''}</td><td>${pc(s.gir, s.girHoles)}</td></tr>`; }).join('')}
-    </table></div>` : ''}<p class="muted small">GIR = green in regulation (worked out from score − putts). Pts = Stableford. Diff = WHS score differential (net double bogey cap) — used to adjust handicaps when the round is finished. Hcp stroke = handicap strokes received on that hole.</p>`;
+    </table></div>` : ''}<p class="muted small">GIR = green in regulation (worked out from score − putts). Pts = Stableford. Diff = WHS score differential (net double bogey cap) — used to adjust handicaps when the round is finished. Strokes = handicap strokes received on that hole.</p>`;
   }
 
   async function renderPhotos() {
@@ -652,10 +652,12 @@ async function gridOcr(bin, worker, status) {
   }
   const colsB = []; for (let j = 0; j < vL.length - 1; j++) if (vL[j + 1] - vL[j] > minCell) colsB.push([vL[j], vL[j + 1]]);
   const widths = colsB.map(([a, b]) => b - a).sort((a, b) => a - b); const medW = widths[widths.length >> 1];
-  const cols = colsB.filter(([a, b]) => b - a < medW * 1.7); // skip the wide name column
+  const cols = colsB.filter(([a, b]) => b - a < medW * 1.7); // number columns
+  const midX = cols.length ? cols[cols.length >> 1][0] : Infinity;
+  const labelCol = colsB.filter(([a, b]) => b - a >= medW * 1.7 && a < midX).pop(); // printed row names
   await worker.setParameters({ tessedit_pageseg_mode: '7' });
   const cell = document.createElement('canvas'); const cctx = cell.getContext('2d', { willReadFrequently: true });
-  const out = []; const total = rowsB.length * cols.length; let done = 0;
+  const out = [], outY = []; const total = rowsB.length * cols.length; let done = 0;
   for (const [y0, y1] of rowsB) {
     const vals = [];
     for (const [x0, x1] of cols) {
@@ -678,11 +680,26 @@ async function gridOcr(bin, worker, status) {
       }
       vals.push(t ? parseInt(t, 10) : null);
     }
-    if (vals.some((v) => v != null)) out.push(vals);
+    if (vals.some((v) => v != null)) { out.push(vals); outY.push([y0, y1]); }
+  }
+  // read each row's printed label (HOLE, PAR, INDEX / HCP / STROKE, player names…)
+  const labels = [];
+  if (labelCol) {
+    await worker.setParameters({ tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz./ ', tessedit_pageseg_mode: '7' });
+    const [lx0, lx1] = labelCol;
+    for (const [y0, y1] of outY) {
+      const iy = Math.round((y1 - y0) * 0.1), ix = 4;
+      const sx = Math.round(lx0) + ix, sy = Math.round(y0) + iy, sw = Math.round(lx1 - lx0) - ix * 2, sh = Math.round(y1 - y0) - iy * 2;
+      const k = 64 / sh; cell.width = Math.round(sw * k) + 40; cell.height = 64 + 40;
+      cctx.fillStyle = '#fff'; cctx.fillRect(0, 0, cell.width, cell.height);
+      cctx.drawImage(c, sx, sy, sw, sh, 20, 20, sw * k, 64);
+      try { const { data: r } = await worker.recognize(cell); labels.push((r.text || '').trim()); } catch { labels.push(''); }
+    }
+    await worker.setParameters({ tessedit_char_whitelist: '0123456789' });
   }
   // drop columns that are empty in most rows (photo edges, gaps between tables)
   const keep = cols.map((_, j) => out.filter((r) => r[j] != null).length > out.length * 0.3);
-  return out.map((r) => r.filter((_, j) => keep[j]));
+  return { rows: out.map((r) => r.filter((_, j) => keep[j])), labels };
 }
 // Drop OUT / IN / TOTAL columns: a value equal to the sum of the boxes before it.
 function stripTotals(vals) {
@@ -740,28 +757,47 @@ function holeRowStart(vals) {
   }
   return -1;
 }
-function guessRows(valRows, round) {
+// What a printed row label means. Index, handicap, HCP, stroke and S.I. all mean the hole's stroke index.
+function labelKind(label, round) {
+  const L = String(label || '').toUpperCase().replace(/[^A-Z]/g, '');
+  if (L.length < 2) return null;
+  if (/HOLE/.test(L)) return 'hole';
+  if (/PUTT/.test(L)) return 'putts';
+  if (/^PAR/.test(L) || L === 'PAR') return 'par';
+  if (/INDEX|HANDICAP|HANDI|HDCP|HCP|STROKE|STK|^S[IL]$|^S$/.test(L)) return 'si';
+  const pi = round.players.findIndex((p) => { const nm = p.name.toUpperCase().replace(/[^A-Z]/g, ''); return nm && (L.includes(nm) || (nm.length >= 3 && L.startsWith(nm.slice(0, 3)))); });
+  if (pi >= 0) return 'p' + pi;
+  if (/YARD|METER|METRE|^M$|DIST/.test(L)) return 'skip';
+  return null;
+}
+function guessRows(valRows, round, labels = []) {
   const n = round.holes;
-  const rows = valRows.map((vals) => ({ vals: vals.slice(0, Math.max(n, 9)), nums: vals.filter((v) => v != null) }))
+  const rows = valRows.map((vals, k) => ({ vals: vals.slice(0, Math.max(n, 9)), nums: vals.filter((v) => v != null), label: labels[k] || '', kind: labelKind(labels[k], round) }))
     .filter((r) => r.nums.length >= 3 && r.nums.filter((v) => v >= 100 || v < 0).length < 3)
     .map((r) => ({ ...r, vals: r.vals.map((v) => (v != null && (v < 0 || v >= 100) ? null : v)) }));
-  let playerIdx = 0, seen = {}, section = 0, sectionStart = 0;
+  let playerIdx = 0, seen = {}, section = 0, sectionStart = 0, lastPlayer = -1;
   rows.forEach((row) => {
     const v = row.vals.filter((x) => x != null);
-    const hs = holeRowStart(row.vals);
+    let hs = holeRowStart(row.vals);
+    if (hs < 0 && row.kind === 'hole') hs = Object.keys(seen).length ? 9 : 0;
     if (hs >= 0) { // a new table starts (front nine / back nine)
       row.target = 'ignore'; row.start = 0;
       if (Object.keys(seen).length) { section++; seen = {}; playerIdx = 0; }
-      sectionStart = n === 18 ? (hs === 9 || section > 0 ? 9 : 0) : 0;
+      sectionStart = n === 18 ? (hs === 9 || section > 0 ? 9 : 0) : 0; lastPlayer = -1;
       return;
     }
+    row.start = sectionStart;
+    if (row.kind === 'skip') { row.target = 'ignore'; return; }
+    if (row.kind === 'par' || row.kind === 'si') { row.target = row.kind; seen[row.kind] = true; return; }
+    if (/^p\d+$/.test(row.kind || '')) { row.target = row.kind; playerIdx = Math.max(playerIdx, +row.kind.slice(1) + 1); seen[row.kind] = true; lastPlayer = +row.kind.slice(1); return; }
+    if (row.kind === 'putts' && lastPlayer >= 0) { row.target = 'u' + lastPlayer; return; }
     const parLike = v.length >= 5 && v.every((x) => x >= 3 && x <= 5);
     const distinct = v.length >= 5 && new Set(v).size === v.length && v.every((x) => x >= 1 && x <= 18);
     if (parLike && !seen.par) row.target = 'par';
     else if (distinct && !seen.si && v.some((x) => x > 9 || x <= 2)) row.target = 'si';
-    else if (playerIdx < round.players.length) row.target = 'p' + playerIdx++;
+    else if (playerIdx < round.players.length) { while (seen['p' + playerIdx]) playerIdx++; row.target = playerIdx < round.players.length ? 'p' + playerIdx++ : 'ignore'; }
     else row.target = 'ignore';
-    row.start = sectionStart;
+    if (row.target[0] === 'p') lastPlayer = +row.target.slice(1);
     if (row.target !== 'ignore') seen[row.target] = true;
   });
   return rows;
@@ -781,9 +817,9 @@ async function runOcr(round, photoId, onApplied) {
     try { grid = await gridOcr(canvas, worker, status); } catch (e) { console.warn('grid read failed', e); }
     if (cancelled) return;
     let rows, raw;
-    if (grid && grid.length) {
-      rows = guessRows(grid.map(stripTotals), round);
-      raw = grid.map((r) => r.map((v) => v ?? '·').join(' ')).join('\n');
+    if (grid && grid.rows.length) {
+      rows = guessRows(grid.rows.map(stripTotals), round, grid.labels);
+      raw = grid.rows.map((r, k) => (grid.labels[k] ? grid.labels[k] + ': ' : '') + r.map((v) => v ?? '·').join(' ')).join('\n');
     } else { // no clear grid: read the whole page
       const d = binData(canvas); removeLines(d.data, canvas.width, canvas.height); canvas.getContext('2d').putImageData(d, 0, 0);
       await worker.setParameters({ tessedit_pageseg_mode: '6' });
@@ -801,13 +837,13 @@ async function runOcr(round, photoId, onApplied) {
 }
 function showOcrReview(round, rows, onApplied, rawText) {
   const n = round.holes;
-  const targetOpts = (sel) => [['ignore', 'Ignore this row'], ['par', 'Par'], ['si', 'Hcp stroke (hole)'], ...round.players.map((p, i) => ['p' + i, p.name]), ...round.players.map((p, i) => ['u' + i, p.name + ' — putts'])]
+  const targetOpts = (sel) => [['ignore', 'Ignore this row'], ['par', 'Par'], ['si', 'Index'], ...round.players.map((p, i) => ['p' + i, p.name]), ...round.players.map((p, i) => ['u' + i, p.name + ' — putts'])]
     .map(([v, l]) => `<option value="${v}" ${v === sel ? 'selected' : ''}>${esc(l)}</option>`).join('');
   const startOpts = (sel) => (n === 18 ? `<select class="o-start" style="width:auto"><option value="0" ${sel === 0 ? 'selected' : ''}>from hole 1</option><option value="9" ${sel === 9 ? 'selected' : ''}>from hole 10</option></select>` : '');
   openModal(`<h2 style="margin-top:0">Check what was read</h2>
     ${rows.length ? `<p class="muted small">Each row found on the card is below. Choose what each row is, then fix any wrong numbers. A dot (·) is an empty box.</p>
     ${rows.map((r, k) => `<div class="ocr-row" data-k="${k}">
-      <div class="row"><select class="o-target grow" style="width:auto">${targetOpts(r.target)}</select>${startOpts(r.start)}</div>
+      ${r.label ? `<div class="muted small">On card: “${esc(r.label)}”</div>` : ''}<div class="row"><select class="o-target grow" style="width:auto">${targetOpts(r.target)}</select>${startOpts(r.start)}</div>
       <input type="text" class="o-vals" value="${r.vals.map((v) => v ?? '·').join(' ')}" inputmode="numeric" style="margin-top:6px;letter-spacing:1px">
     </div>`).join('')}` : `<p>No rows of numbers were found. Try a sharper, flatter photo — or type the scores in while looking at the photo.</p>`}
     <details><summary class="small muted">Raw text read</summary><pre class="small" style="white-space:pre-wrap">${esc(rawText || '')}</pre></details>
@@ -899,7 +935,7 @@ function viewCourse(id) {
     <div class="card"><div class="sc-wrap"><table class="sc">
       <tr><th class="name">Hole</th>${cols.map((i) => `<th>${i + 1}</th>`).join('')}</tr>
       <tr><td class="name">Par</td>${cols.map((i) => `<td><input type="number" inputmode="numeric" data-k="par" data-i="${i}" value="${c.par[i] ?? ''}"></td>`).join('')}</tr>
-      <tr><td class="name">Hcp stroke</td>${cols.map((i) => `<td><input type="number" inputmode="numeric" data-k="si" data-i="${i}" value="${c.si[i] ?? ''}"></td>`).join('')}</tr>
+      <tr><td class="name">Index</td>${cols.map((i) => `<td><input type="number" inputmode="numeric" data-k="si" data-i="${i}" value="${c.si[i] ?? ''}"></td>`).join('')}</tr>
     </table></div><p class="muted small">Par ${sum(c.par.slice(0, c.holes).map(num))}. New rounds at this course start with these values.</p></div>
     <button class="btn danger" id="c-del">Delete course</button>`;
   const upd = (f) => (e) => { f(e.target.value); save(); };
