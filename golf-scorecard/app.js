@@ -262,7 +262,7 @@ function viewNewRound() {
         <div class="grid3">
           <label class="field">Holes<select id="nr-holes"><option>18</option><option>9</option></select></label>
           <label class="field">Tee (optional)<input type="text" id="nr-tee" placeholder="Blue"></label>
-          <label class="field">&nbsp;<span class="muted small">Par &amp; stroke index can be set on the card or read from the photo.</span></label>
+          <label class="field">&nbsp;<span class="muted small">Par &amp; hole handicap can be set on the card or read from the photo.</span></label>
         </div>
       </div>
       <div id="nr-coursehint" class="muted small"></div>
@@ -355,7 +355,7 @@ function viewRound(id) {
 
     <div class="card">
       <div class="row spread"><h3 style="margin:0">Scorecard photo</h3>
-        <span class="row"><label class="btn small primary">📷 Snap / upload<input type="file" id="r-photo" accept="image/*" capture="environment" hidden></label></span></div>
+        <span class="row"><label class="btn small primary">📷 Take photo<input type="file" class="r-photo" accept="image/*" capture="environment" hidden></label><label class="btn small">🖼️ From gallery<input type="file" class="r-photo" accept="image/*" hidden></label></span></div>
       <div class="photos" id="r-photos" style="margin-top:8px"></div>
       <div id="r-photodock"></div>
     </div>
@@ -381,7 +381,7 @@ function viewRound(id) {
       <button class="btn primary grow" id="r-finish">${r.finished ? 'Save changes & update handicaps' : 'Finish round & update handicaps'}</button>
       <button class="btn danger" id="r-delete">Delete</button>
     </div>
-    <p class="muted small">Course par, stroke index, rating and slope are remembered for “${esc(r.courseName)}” next time.</p>`;
+    <p class="muted small">Course par, hole handicap, rating and slope are remembered for “${esc(r.courseName)}” next time.</p>`;
 
   const persistCourse = () => {
     let c = getCourse(r.courseId);
@@ -404,10 +404,10 @@ function viewRound(id) {
   function renderHcps() {
     $('#r-hcps').innerHTML = r.players.map((rp, i) => `
       <div class="grid3" data-i="${i}">
-        <label class="field">${esc(rp.name)} — index<input type="number" step="0.1" class="h-idx" value="${rp.index ?? ''}"></label>
+        <label class="field">${esc(rp.name)} — handicap<input type="number" step="0.1" class="h-idx" value="${rp.index ?? ''}"></label>
         <label class="field">Course handicap<input type="number" class="h-ch" value="${rp.courseHcp ?? ''}"></label>
         <label class="field">&nbsp;<span class="muted small">Record: ${fmtHcp(getPlayer(rp.playerId)?.index)}</span></label>
-      </div>`).join('') + `<p class="muted small" style="margin:0">Changing the index here only affects this game. To change a player's saved handicap, go to Players.</p>`;
+      </div>`).join('') + `<p class="muted small" style="margin:0">Changing the handicap here only affects this game. To change a player's saved handicap, go to Players. The Handicap row on the card is each hole's difficulty (1 = hardest), which sets where handicap strokes fall.</p>`;
     $$('#r-hcps [data-i]').forEach((el) => {
       const rp = r.players[+el.dataset.i];
       $('.h-idx', el).onchange = (e) => { rp.index = num(e.target.value) ?? 0; rp.hcpLocked = false; rp.courseHcp = courseHandicap(rp.index, r); touch(); renderHcps(); renderCard(); renderSummary(); };
@@ -450,7 +450,7 @@ function viewRound(id) {
       return `<div class="sc-wrap" style="margin-bottom:10px"><table class="sc">
         <tr><th class="name">Hole</th>${holes.map((i) => `<th>${i + 1}</th>`).join('')}<th>${label}</th>${n === 18 && b === 18 ? '<th>Tot</th>' : ''}</tr>
         <tr class="meta"><td class="name muted">Par</td>${holes.map((i) => cell('par', i, r.par[i])).join('')}<td class="tot">${parTot || ''}</td>${n === 18 && b === 18 ? `<td class="tot">${sum(r.par.slice(0, 18).map(num)) || ''}</td>` : ''}</tr>
-        <tr class="meta"><td class="name muted">Index</td>${holes.map((i) => cell('si', i, r.si[i])).join('')}<td class="tot"></td>${n === 18 && b === 18 ? '<td class="tot"></td>' : ''}</tr>
+        <tr class="meta"><td class="name muted">Handicap</td>${holes.map((i) => cell('si', i, r.si[i])).join('')}<td class="tot"></td>${n === 18 && b === 18 ? '<td class="tot"></td>' : ''}</tr>
         ${playerRows}
       </table></div>`;
     }).join('');
@@ -495,7 +495,7 @@ function viewRound(id) {
 
   async function renderPhotos() {
     const box = $('#r-photos');
-    if (!r.photoIds.length) { box.innerHTML = '<span class="muted small">Snap the paper scorecard and the app will read it into the card below.</span>'; $('#r-photodock').innerHTML = ''; return; }
+    if (!r.photoIds.length) { box.innerHTML = '<span class="muted small">Take a photo of the paper scorecard, or pick one from your gallery, and the app will read it into the card below.</span>'; $('#r-photodock').innerHTML = ''; return; }
     const urls = await Promise.all(r.photoIds.map(photoUrl));
     box.innerHTML = urls.map((u, k) => (u ? `<img src="${u}" data-k="${k}" alt="Scorecard photo ${k + 1}">` : '')).join('');
     $$('img', box).forEach((img) => (img.onclick = () => showDock(+img.dataset.k)));
@@ -520,7 +520,7 @@ function viewRound(id) {
     };
     $('#pv-ocr').onclick = () => runOcr(r, id, () => { renderCard(); renderSummary(); refreshHcps(); touch(); });
   }
-  $('#r-photo').onchange = async (e) => {
+  $$('.r-photo').forEach((inp) => (inp.onchange = async (e) => {
     const file = e.target.files[0]; if (!file) return; e.target.value = '';
     try {
       const blob = await compressImage(file, 2000, 0.85);
@@ -528,7 +528,7 @@ function viewRound(id) {
       r.photoIds.push(pid); r._dock = r.photoIds.length - 1; touch(); await renderPhotos();
       runOcr(r, pid, () => { renderCard(); renderSummary(); refreshHcps(); touch(); });
     } catch (err) { console.error(err); toast('Could not save photo: ' + err.message); }
-  };
+  }));
 
   $('#r-finish').onclick = () => {
     const missing = r.players.filter((rp) => playerStats(r, rp).played < n);
@@ -795,7 +795,7 @@ async function runOcr(round, photoId, onApplied) {
 }
 function showOcrReview(round, rows, onApplied, rawText) {
   const n = round.holes;
-  const targetOpts = (sel) => [['ignore', 'Ignore this row'], ['par', 'Par'], ['si', 'Stroke index'], ...round.players.map((p, i) => ['p' + i, p.name]), ...round.players.map((p, i) => ['u' + i, p.name + ' — putts'])]
+  const targetOpts = (sel) => [['ignore', 'Ignore this row'], ['par', 'Par'], ['si', 'Handicap (hole)'], ...round.players.map((p, i) => ['p' + i, p.name]), ...round.players.map((p, i) => ['u' + i, p.name + ' — putts'])]
     .map(([v, l]) => `<option value="${v}" ${v === sel ? 'selected' : ''}>${esc(l)}</option>`).join('');
   const startOpts = (sel) => (n === 18 ? `<select class="o-start" style="width:auto"><option value="0" ${sel === 0 ? 'selected' : ''}>from hole 1</option><option value="9" ${sel === 9 ? 'selected' : ''}>from hole 10</option></select>` : '');
   openModal(`<h2 style="margin-top:0">Check what was read</h2>
@@ -893,7 +893,7 @@ function viewCourse(id) {
     <div class="card"><div class="sc-wrap"><table class="sc">
       <tr><th class="name">Hole</th>${cols.map((i) => `<th>${i + 1}</th>`).join('')}</tr>
       <tr><td class="name">Par</td>${cols.map((i) => `<td><input type="number" inputmode="numeric" data-k="par" data-i="${i}" value="${c.par[i] ?? ''}"></td>`).join('')}</tr>
-      <tr><td class="name">Index</td>${cols.map((i) => `<td><input type="number" inputmode="numeric" data-k="si" data-i="${i}" value="${c.si[i] ?? ''}"></td>`).join('')}</tr>
+      <tr><td class="name">Handicap</td>${cols.map((i) => `<td><input type="number" inputmode="numeric" data-k="si" data-i="${i}" value="${c.si[i] ?? ''}"></td>`).join('')}</tr>
     </table></div><p class="muted small">Par ${sum(c.par.slice(0, c.holes).map(num))}. New rounds at this course start with these values.</p></div>
     <button class="btn danger" id="c-del">Delete course</button>`;
   const upd = (f) => (e) => { f(e.target.value); save(); };
