@@ -184,3 +184,6 @@ td:has(> .drv-R) { background: rgba(183,121,31,0.14); }
 td:has(> .drv-H) { background: rgba(197,48,48,0.13); }
 b.lg { padding: 0 5px; border-radius: 4px; background: var(--bg); }
 @media (prefers-color-scheme: dark) { .drv-F { color: #5fd38e; } .drv-R { color: #f0b860; } .drv-H { color: #ff7b7b; } }
+
+table.sc tr.hs td { height: 26px; font-size: 0.82rem; color: var(--muted); }
+table.sc tr.hs td.got { color: var(--brand); font-weight: 700; background: var(--brand-soft); }

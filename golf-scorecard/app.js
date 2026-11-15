@@ -407,7 +407,7 @@ function viewRound(id) {
         <label class="field">${esc(rp.name)} — handicap<input type="number" step="0.1" class="h-idx" value="${rp.index ?? ''}"></label>
         <label class="field">Course handicap<input type="number" class="h-ch" value="${rp.courseHcp ?? ''}"></label>
         <label class="field">&nbsp;<span class="muted small">Record: ${fmtHcp(getPlayer(rp.playerId)?.index)}</span></label>
-      </div>`).join('') + `<p class="muted small" style="margin:0">Changing the handicap here only affects this game. To change a player's saved handicap, go to Players. The Handicap row on the card is each hole's difficulty (1 = hardest), which sets where handicap strokes fall.</p>`;
+      </div>`).join('') + `<p class="muted small" style="margin:0">Changing the handicap here only affects this game. To change a player's saved handicap, go to Players. The Hcp stroke row on the card is each hole's difficulty (1 = hardest). Each player's “Hcp stroke” row shows the strokes they get on each hole from their course handicap.</p>`;
     $$('#r-hcps [data-i]').forEach((el) => {
       const rp = r.players[+el.dataset.i];
       $('.h-idx', el).onchange = (e) => { rp.index = num(e.target.value) ?? 0; rp.hcpLocked = false; rp.courseHcp = courseHandicap(rp.index, r); touch(); renderHcps(); renderCard(); renderSummary(); };
@@ -426,12 +426,18 @@ function viewRound(id) {
         const sc = holes.map((i) => {
           const s = num(rp.scores[i]); const par = num(r.par[i]) || 4; let cls = '';
           if (s != null) { const d = s - par; cls = d <= -2 ? 'eagle' : d === -1 ? 'birdie' : d >= 2 ? 'bogey2' : ''; }
-          const st = strokes[pi][i]; const dots = st > 0 ? `<span class="dots">${'•'.repeat(Math.min(st, 3))}</span>` : '';
+          const st = strokes[pi][i]; const dots = '';
           return cell('p' + pi, i, rp.scores[i], cls, dots);
         }).join('');
         const tot = sum(holes.map((i) => num(rp.scores[i])));
         const totAll = sum(rp.scores.slice(0, n).map(num));
         let html = `<tr class="prow"><td class="name" title="${esc(rp.name)}">${esc(rp.name)}</td>${sc}<td class="tot">${tot || ''}</td>${n === 18 && b === 18 ? `<td class="tot">${totAll || ''}</td>` : ''}</tr>`;
+        {
+          const st = strokes[pi]; const all = [...Array(n).keys()];
+          const stSum = (list) => sum(list.map((i) => st[i]));
+          const fmtSt = (v) => (v > 0 ? v : v < 0 ? '+' + -v : '');
+          html += `<tr class="sub hs"><td class="name muted">↳ Hcp stroke</td>${holes.map((i) => `<td class="${st[i] ? 'got' : ''}">${fmtSt(st[i])}</td>`).join('')}<td class="tot">${stSum(holes) || ''}</td>${n === 18 && b === 18 ? `<td class="tot">${stSum(all) || ''}</td>` : ''}</tr>`;
+        }
         if (track) {
           rp.drives = rp.drives || []; rp.putts = rp.putts || [];
           const all = [...Array(n).keys()];
@@ -450,7 +456,7 @@ function viewRound(id) {
       return `<div class="sc-wrap" style="margin-bottom:10px"><table class="sc">
         <tr><th class="name">Hole</th>${holes.map((i) => `<th>${i + 1}</th>`).join('')}<th>${label}</th>${n === 18 && b === 18 ? '<th>Tot</th>' : ''}</tr>
         <tr class="meta"><td class="name muted">Par</td>${holes.map((i) => cell('par', i, r.par[i])).join('')}<td class="tot">${parTot || ''}</td>${n === 18 && b === 18 ? `<td class="tot">${sum(r.par.slice(0, 18).map(num)) || ''}</td>` : ''}</tr>
-        <tr class="meta"><td class="name muted">Handicap</td>${holes.map((i) => cell('si', i, r.si[i])).join('')}<td class="tot"></td>${n === 18 && b === 18 ? '<td class="tot"></td>' : ''}</tr>
+        <tr class="meta"><td class="name muted">Hcp stroke</td>${holes.map((i) => cell('si', i, r.si[i])).join('')}<td class="tot"></td>${n === 18 && b === 18 ? '<td class="tot"></td>' : ''}</tr>
         ${playerRows}
       </table></div>`;
     }).join('');
@@ -490,7 +496,7 @@ function viewRound(id) {
     </table></div>
     ${db.settings.trackShots !== false ? `<div class="sc-wrap" style="margin-top:10px"><table class="summary"><tr><th>Player</th><th>Fairway</th><th>Rough</th><th>Hazard</th><th>Putts</th><th>GIR</th></tr>
       ${r.players.map((rp) => { const s = playerStats(r, rp); const pc = (a, b) => (b ? `${a}/${b}` : '–'); return `<tr><td><strong>${esc(rp.name)}</strong></td><td>${pc(s.fw, s.driveHoles)}</td><td>${s.driveHoles ? s.rough : '–'}</td><td>${s.driveHoles ? s.haz : '–'}</td><td>${s.puttHoles ? s.puttTot : '–'}${s.puttHoles ? `<br><span class="muted small">${(s.puttTot / s.puttHoles).toFixed(1)}/hole</span>` : ''}</td><td>${pc(s.gir, s.girHoles)}</td></tr>`; }).join('')}
-    </table></div>` : ''}<p class="muted small">GIR = green in regulation (worked out from score − putts). Pts = Stableford. Diff = WHS score differential (net double bogey cap) — used to adjust handicaps when the round is finished. Dots on a box = handicap strokes on that hole.</p>`;
+    </table></div>` : ''}<p class="muted small">GIR = green in regulation (worked out from score − putts). Pts = Stableford. Diff = WHS score differential (net double bogey cap) — used to adjust handicaps when the round is finished. Hcp stroke = handicap strokes received on that hole.</p>`;
   }
 
   async function renderPhotos() {
@@ -795,7 +801,7 @@ async function runOcr(round, photoId, onApplied) {
 }
 function showOcrReview(round, rows, onApplied, rawText) {
   const n = round.holes;
-  const targetOpts = (sel) => [['ignore', 'Ignore this row'], ['par', 'Par'], ['si', 'Handicap (hole)'], ...round.players.map((p, i) => ['p' + i, p.name]), ...round.players.map((p, i) => ['u' + i, p.name + ' — putts'])]
+  const targetOpts = (sel) => [['ignore', 'Ignore this row'], ['par', 'Par'], ['si', 'Hcp stroke (hole)'], ...round.players.map((p, i) => ['p' + i, p.name]), ...round.players.map((p, i) => ['u' + i, p.name + ' — putts'])]
     .map(([v, l]) => `<option value="${v}" ${v === sel ? 'selected' : ''}>${esc(l)}</option>`).join('');
   const startOpts = (sel) => (n === 18 ? `<select class="o-start" style="width:auto"><option value="0" ${sel === 0 ? 'selected' : ''}>from hole 1</option><option value="9" ${sel === 9 ? 'selected' : ''}>from hole 10</option></select>` : '');
   openModal(`<h2 style="margin-top:0">Check what was read</h2>
@@ -893,7 +899,7 @@ function viewCourse(id) {
     <div class="card"><div class="sc-wrap"><table class="sc">
       <tr><th class="name">Hole</th>${cols.map((i) => `<th>${i + 1}</th>`).join('')}</tr>
       <tr><td class="name">Par</td>${cols.map((i) => `<td><input type="number" inputmode="numeric" data-k="par" data-i="${i}" value="${c.par[i] ?? ''}"></td>`).join('')}</tr>
-      <tr><td class="name">Handicap</td>${cols.map((i) => `<td><input type="number" inputmode="numeric" data-k="si" data-i="${i}" value="${c.si[i] ?? ''}"></td>`).join('')}</tr>
+      <tr><td class="name">Hcp stroke</td>${cols.map((i) => `<td><input type="number" inputmode="numeric" data-k="si" data-i="${i}" value="${c.si[i] ?? ''}"></td>`).join('')}</tr>
     </table></div><p class="muted small">Par ${sum(c.par.slice(0, c.holes).map(num))}. New rounds at this course start with these values.</p></div>
     <button class="btn danger" id="c-del">Delete course</button>`;
   const upd = (f) => (e) => { f(e.target.value); save(); };

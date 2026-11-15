@@ -1,5 +1,5 @@
 // Offline cache for the app shell and the on-device OCR engine.
-const CACHE = 'golf-scorecard-v3';
+const CACHE = 'golf-scorecard-v4';
 const FILES = [
   './', 'index.html', 'app.js', 'style.css', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png',

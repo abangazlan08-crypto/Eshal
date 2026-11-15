@@ -3,7 +3,7 @@
 A phone app that runs fully offline in the browser and can be added to the home screen. Everything is stored on the device.
 
 ## What it does
-- **Rounds**: pick or type the course name, the date and the players, then fill in a virtual scorecard (par, hole handicap and scores). Every box can be edited, and finished rounds can be edited too.
+- **Rounds**: pick or type the course name, the date and the players, then fill in a virtual scorecard (par, hole handicap stroke and scores; each player also gets a row showing the handicap strokes they receive on every hole). Every box can be edited, and finished rounds can be edited too.
 - **Snap the scorecard**: take a photo with the camera or pick one from the gallery, and the app reads the boxes on the device (Tesseract OCR is bundled in `vendor/`, so it needs no internet). You then check each row it found, choose whether it's par, handicap or a player, and it fills the card. Boxes filled from the photo are yellow until you check them. The photo stays with the round.
 - **Handicap**:
   - Each player has a handicap on record, and it is filled in automatically for every new round.
