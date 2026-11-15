@@ -139,7 +139,15 @@ function playerStats(round, rp) {
     if (n === 9) diff = diff + (rp.index || 0) / 2; // approx. WHS expected score for the other nine
     diff = Math.round(diff * 10) / 10;
   }
-  return { ch, strokes, played, gross, out, inn, toPar: played ? gross - parPlayed : null, net: played === n ? gross - ch : null, pts, ags, diff };
+  // drives (F fairway, R rough, H hazard) on par 4/5s, putts and greens in regulation
+  const drives = rp.drives || [], putts = rp.putts || [];
+  let fw = 0, rough = 0, haz = 0, driveHoles = 0, puttTot = 0, puttHoles = 0, gir = 0, girHoles = 0;
+  for (let i = 0; i < n; i++) {
+    const par = num(round.par[i]) || 4, d = drives[i], pt = num(putts[i]), sc = scores[i];
+    if (par > 3 && d) { driveHoles++; if (d === 'F') fw++; else if (d === 'R') rough++; else if (d === 'H') haz++; }
+    if (pt != null) { puttTot += pt; puttHoles++; if (sc != null) { girHoles++; if (sc - pt <= par - 2) gir++; } }
+  }
+  return { fw, rough, haz, driveHoles, puttTot, puttHoles, gir, girHoles, ch, strokes, played, gross, out, inn, toPar: played ? gross - parPlayed : null, net: played === n ? gross - ch : null, pts, ags, diff };
 }
 // WHS: best N of the last 20 differentials, with adjustment for short records.
 const WHS_TABLE = { 3: [1, -2], 4: [1, -1], 5: [1, 0], 6: [2, -1], 7: [2, 0], 8: [2, 0], 9: [3, 0], 10: [3, 0], 11: [3, 0], 12: [4, 0], 13: [4, 0], 14: [4, 0], 15: [5, 0], 16: [5, 0], 17: [6, 0], 18: [6, 0], 19: [7, 0], 20: [8, 0] };
@@ -354,7 +362,9 @@ function viewRound(id) {
 
     <div class="card">
       <div class="row spread"><h3 style="margin:0">Virtual scorecard</h3><span class="muted small">Tap any box to edit</span></div>
+      <label class="check small" style="margin:6px 0"><input type="checkbox" id="r-track" ${db.settings.trackShots !== false ? 'checked' : ''}> Track drives &amp; putts</label>
       <div id="r-card"></div>
+      <p class="muted small" id="r-legend">Drive: tap the box to switch <b class="drv-F lg">F</b> fairway → <b class="drv-R lg">R</b> rough → <b class="drv-H lg">H</b> hazard → empty. Par 3s are skipped.</p>
       <p class="muted small" id="r-ocrnote" style="display:none">Yellow boxes were read from the photo — check them against the card.</p>
     </div>
 
@@ -384,6 +394,7 @@ function viewRound(id) {
   $('#r-date').onchange = (e) => { r.date = e.target.value; touch(); };
   $('#r-rating').onchange = (e) => { r.rating = num(e.target.value); refreshHcps(); touch(); };
   $('#r-slope').onchange = (e) => { r.slope = num(e.target.value); refreshHcps(); touch(); };
+  $('#r-track').onchange = (e) => { db.settings.trackShots = e.target.checked; save(); renderCard(); renderSummary(); };
   $('#r-notes').onchange = (e) => { r.notes = e.target.value; touch(); };
 
   function refreshHcps(force) {
@@ -407,6 +418,7 @@ function viewRound(id) {
   function renderCard() {
     const halves = n === 18 ? [[0, 9, 'Out'], [9, 18, 'In']] : [[0, 9, 'Tot']];
     const strokes = r.players.map((rp) => playerStats(r, rp).strokes);
+    const track = db.settings.trackShots !== false;
     $('#r-card').innerHTML = halves.map(([a, b, label]) => {
       const holes = [...Array(b - a)].map((_, k) => a + k);
       const cell = (row, i, val, cls = '', extra = '') => `<td class="${ocrCells.has(row + ':' + i) ? 'ocr' : ''}">${extra}<input inputmode="numeric" pattern="[0-9]*" type="number" data-row="${row}" data-i="${i}" value="${val ?? ''}" class="${cls}"></td>`;
@@ -419,7 +431,20 @@ function viewRound(id) {
         }).join('');
         const tot = sum(holes.map((i) => num(rp.scores[i])));
         const totAll = sum(rp.scores.slice(0, n).map(num));
-        return `<tr><td class="name" title="${esc(rp.name)}">${esc(rp.name)}</td>${sc}<td class="tot">${tot || ''}</td>${n === 18 && b === 18 ? `<td class="tot">${totAll || ''}</td>` : ''}</tr>`;
+        let html = `<tr class="prow"><td class="name" title="${esc(rp.name)}">${esc(rp.name)}</td>${sc}<td class="tot">${tot || ''}</td>${n === 18 && b === 18 ? `<td class="tot">${totAll || ''}</td>` : ''}</tr>`;
+        if (track) {
+          rp.drives = rp.drives || []; rp.putts = rp.putts || [];
+          const all = [...Array(n).keys()];
+          const fwStr = (list) => { const e = list.filter((i) => (num(r.par[i]) || 4) > 3 && rp.drives[i]); return e.length ? `${e.filter((i) => rp.drives[i] === 'F').length}/${e.length}` : ''; };
+          const drv = holes.map((i) => ((num(r.par[i]) || 4) > 3
+            ? `<td><button type="button" class="drv drv-${rp.drives[i] || 'x'}" data-p="${pi}" data-i="${i}" aria-label="Drive hole ${i + 1}">${rp.drives[i] || '·'}</button></td>`
+            : '<td class="na">–</td>')).join('');
+          const pts = holes.map((i) => cell('u' + pi, i, rp.putts[i], 'putt')).join('');
+          const pSum = (list) => sum(list.map((i) => num(rp.putts[i]))) || '';
+          html += `<tr class="sub"><td class="name muted">↳ Drive</td>${drv}<td class="tot small">${fwStr(holes)}</td>${n === 18 && b === 18 ? `<td class="tot small">${fwStr(all)}</td>` : ''}</tr>`;
+          html += `<tr class="sub"><td class="name muted">↳ Putts</td>${pts}<td class="tot">${pSum(holes)}</td>${n === 18 && b === 18 ? `<td class="tot">${pSum(all)}</td>` : ''}</tr>`;
+        }
+        return html;
       }).join('');
       const parTot = sum(holes.map((i) => num(r.par[i])));
       return `<div class="sc-wrap" style="margin-bottom:10px"><table class="sc">
@@ -430,6 +455,12 @@ function viewRound(id) {
       </table></div>`;
     }).join('');
     $('#r-ocrnote').style.display = ocrCells.size ? '' : 'none';
+    $('#r-legend').style.display = track ? '' : 'none';
+    $$('#r-card .drv').forEach((btn) => (btn.onclick = () => {
+      const rp = r.players[+btn.dataset.p]; const i = +btn.dataset.i; rp.drives = rp.drives || [];
+      const cycle = ['', 'F', 'R', 'H']; rp.drives[i] = cycle[(cycle.indexOf(rp.drives[i] || '') + 1) % cycle.length] || null;
+      touch(); renderCard(); renderSummary();
+    }));
     $$('#r-card input').forEach((inp) => {
       inp.addEventListener('change', onCellChange);
       inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); focusNext(inp); } });
@@ -444,18 +475,22 @@ function viewRound(id) {
   function onCellChange(e) {
     const { row, i } = e.target.dataset; const v = num(e.target.value);
     if (row === 'par') r.par[+i] = v; else if (row === 'si') r.si[+i] = v;
+    else if (row.startsWith('u')) { const rp = r.players[+row.slice(1)]; (rp.putts = rp.putts || [])[+i] = v; }
     else r.players[+row.slice(1)].scores[+i] = v;
     ocrCells.delete(row + ':' + i);
     if (row === 'par') refreshHcps(); // par total changes course handicap when no rating is set
     touch(); renderCard(); renderSummary();
     // keep the flow: jump to the next box after typing a score
-    const nxt = $(`#r-card input[data-row="${row}"][data-i="${+i + 1}"]`); if (nxt && v != null && row.startsWith('p')) nxt.focus();
+    const nxt = $(`#r-card input[data-row="${row}"][data-i="${+i + 1}"]`); if (nxt && v != null && /^[pu]/.test(row)) nxt.focus();
   }
 
   function renderSummary() {
     $('#r-summary').innerHTML = `<div class="sc-wrap"><table class="summary"><tr><th>Player</th><th>Gross</th><th>To par</th><th>Hcp</th><th>Net</th><th>Pts</th><th>Diff</th></tr>
       ${r.players.map((rp) => { const s = playerStats(r, rp); return `<tr><td><strong>${esc(rp.name)}</strong><br><span class="muted small">${s.played}/${n} holes</span></td><td>${s.played ? s.gross : '–'}${n === 18 && s.played ? `<br><span class="muted small">${s.out || '–'}/${s.inn || '–'}</span>` : ''}</td><td>${vsPar(s.toPar)}</td><td>${s.ch}</td><td>${s.net ?? '–'}</td><td>${s.played ? s.pts : '–'}</td><td>${s.diff == null ? '–' : fmt1(s.diff)}</td></tr>`; }).join('')}
-    </table></div><p class="muted small">Pts = Stableford. Diff = WHS score differential (net double bogey cap) — used to adjust handicaps when the round is finished. Dots on a box = handicap strokes on that hole.</p>`;
+    </table></div>
+    ${db.settings.trackShots !== false ? `<div class="sc-wrap" style="margin-top:10px"><table class="summary"><tr><th>Player</th><th>Fairway</th><th>Rough</th><th>Hazard</th><th>Putts</th><th>GIR</th></tr>
+      ${r.players.map((rp) => { const s = playerStats(r, rp); const pc = (a, b) => (b ? `${a}/${b}` : '–'); return `<tr><td><strong>${esc(rp.name)}</strong></td><td>${pc(s.fw, s.driveHoles)}</td><td>${s.driveHoles ? s.rough : '–'}</td><td>${s.driveHoles ? s.haz : '–'}</td><td>${s.puttHoles ? s.puttTot : '–'}${s.puttHoles ? `<br><span class="muted small">${(s.puttTot / s.puttHoles).toFixed(1)}/hole</span>` : ''}</td><td>${pc(s.gir, s.girHoles)}</td></tr>`; }).join('')}
+    </table></div>` : ''}<p class="muted small">GIR = green in regulation (worked out from score − putts). Pts = Stableford. Diff = WHS score differential (net double bogey cap) — used to adjust handicaps when the round is finished. Dots on a box = handicap strokes on that hole.</p>`;
   }
 
   async function renderPhotos() {
@@ -760,7 +795,7 @@ async function runOcr(round, photoId, onApplied) {
 }
 function showOcrReview(round, rows, onApplied, rawText) {
   const n = round.holes;
-  const targetOpts = (sel) => [['ignore', 'Ignore this row'], ['par', 'Par'], ['si', 'Stroke index'], ...round.players.map((p, i) => ['p' + i, p.name])]
+  const targetOpts = (sel) => [['ignore', 'Ignore this row'], ['par', 'Par'], ['si', 'Stroke index'], ...round.players.map((p, i) => ['p' + i, p.name]), ...round.players.map((p, i) => ['u' + i, p.name + ' — putts'])]
     .map(([v, l]) => `<option value="${v}" ${v === sel ? 'selected' : ''}>${esc(l)}</option>`).join('');
   const startOpts = (sel) => (n === 18 ? `<select class="o-start" style="width:auto"><option value="0" ${sel === 0 ? 'selected' : ''}>from hole 1</option><option value="9" ${sel === 9 ? 'selected' : ''}>from hole 10</option></select>` : '');
   openModal(`<h2 style="margin-top:0">Check what was read</h2>
@@ -781,7 +816,9 @@ function showOcrReview(round, rows, onApplied, rawText) {
         const vals = $('.o-vals', el).value.trim().split(/[\s,]+/).map((x) => parseInt(x, 10));
         vals.forEach((v, j) => {
           const i = start + j; if (i >= n || isNaN(v)) return;
-          if (target === 'par') round.par[i] = v; else if (target === 'si') round.si[i] = v; else round.players[+target.slice(1)].scores[i] = v;
+          if (target === 'par') round.par[i] = v; else if (target === 'si') round.si[i] = v;
+          else if (target[0] === 'u') { const rp = round.players[+target.slice(1)]; (rp.putts = rp.putts || [])[i] = v; }
+          else round.players[+target.slice(1)].scores[i] = v;
           ocrCells.add(target + ':' + i); filled++;
         });
       });
@@ -814,6 +851,11 @@ function viewPlayer(id) {
     </div>
     <div class="card"><h3 style="margin-top:0">Stats</h3>
       <div class="grid3"><div><div class="muted small">Rounds</div><strong>${rounds.length}</strong></div><div><div class="muted small">Avg 18-hole gross</div><strong>${grosses18.length ? (sum(grosses18) / grosses18.length).toFixed(1) : '–'}</strong></div><div><div class="muted small">Best 18-hole gross</div><strong>${grosses18.length ? Math.min(...grosses18) : '–'}</strong></div></div>
+      ${(() => { const all = rounds.map((r) => playerStats(r, r.players.find((rp) => rp.playerId === p.id)));
+        const dh = sum(all.map((x) => x.driveHoles)), ph = sum(all.map((x) => x.puttHoles)), gh = sum(all.map((x) => x.girHoles));
+        const pct = (a, b) => (b ? Math.round((100 * a) / b) + '%' : '–');
+        const three = sum(rounds.map((r) => (r.players.find((rp) => rp.playerId === p.id).putts || []).filter((v) => num(v) >= 3).length));
+        return `<div class="grid3" style="margin-top:10px"><div><div class="muted small">Fairways hit</div><strong>${pct(sum(all.map((x) => x.fw)), dh)}</strong></div><div><div class="muted small">Rough / hazard</div><strong>${pct(sum(all.map((x) => x.rough)), dh)} / ${pct(sum(all.map((x) => x.haz)), dh)}</strong></div><div><div class="muted small">Putts per 18</div><strong>${ph ? ((18 * sum(all.map((x) => x.puttTot))) / ph).toFixed(1) : '–'}</strong></div><div><div class="muted small">Greens in reg.</div><strong>${pct(sum(all.map((x) => x.gir)), gh)}</strong></div><div><div class="muted small">3-putt holes</div><strong>${three}</strong></div></div>`; })()}
       <h3>Handicap trend</h3>${sparkline(p.history.map((h) => -h.index)) || '<p class="muted small">Play a few rounds to see a trend.</p>'}
     </div>
     <div class="card"><h3 style="margin-top:0">Score differentials (counting rounds)</h3>

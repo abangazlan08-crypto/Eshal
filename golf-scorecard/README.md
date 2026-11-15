@@ -10,6 +10,7 @@ A phone app that runs fully offline in the browser and can be added to the home 
   - Before a game you can change it for that game only, or tick the box to save it as the new handicap.
   - When a round is finished, the handicap adjusts automatically. It uses WHS score differentials (net double bogey, course rating and slope), and with 3 or more rounds it takes the best N of the last 20. Before that, it blends the starting handicap with the rounds played.
   - You can switch auto-adjust off for each player.
+- **Drives & putts**: for each hole, tap the drive box to cycle F (fairway), R (rough), H (hazard); par 3s are skipped. Type putts per hole. The round summary shows fairways, rough, hazard, putts and greens in regulation, and each player page shows fairway %, putts per 18, GIR % and 3-putts. Can be switched off.
 - **Courses** are remembered: name, tee, par, stroke index, rating and slope.
 - **Backup**:
   - Save or share a `.json` backup file, with or without photos.

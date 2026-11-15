@@ -170,3 +170,17 @@ details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
 .check { display: flex; gap: 8px; align-items: center; font-size: 0.9rem; }
 
 @media (max-width: 430px) { .brand .word { display: none; } .topbar { padding-left: 12px; padding-right: 8px; } }
+
+/* drives & putts */
+table.sc tr.sub td { height: 32px; }
+table.sc tr.sub td.name { font-size: 0.8rem; }
+table.sc tr.sub input { font-size: 0.9rem; color: var(--muted); }
+table.sc tr.prow td { border-top: 2px solid var(--line); }
+table.sc td.na { color: var(--line); }
+.drv { width: 100%; height: 100%; min-width: 34px; border: 0; background: transparent; font-weight: 700; font-size: 0.85rem; cursor: pointer; color: var(--muted); }
+.drv-F { color: #1f8a4c; } .drv-R { color: #b7791f; } .drv-H { color: #c53030; }
+td:has(> .drv-F) { background: rgba(31,138,76,0.12); }
+td:has(> .drv-R) { background: rgba(183,121,31,0.14); }
+td:has(> .drv-H) { background: rgba(197,48,48,0.13); }
+b.lg { padding: 0 5px; border-radius: 4px; background: var(--bg); }
+@media (prefers-color-scheme: dark) { .drv-F { color: #5fd38e; } .drv-R { color: #f0b860; } .drv-H { color: #ff7b7b; } }
