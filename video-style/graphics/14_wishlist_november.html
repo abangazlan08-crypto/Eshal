@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    html, body { margin: 0; padding: 0; background: #120b06; }
+    #root { position: relative; width: 1080px; height: 1350px; overflow: hidden; background: #120b06; }
+    #bg { position: absolute; inset: 0; width: 1080px; height: 1350px; object-fit: cover; }
+    #shade { position: absolute; inset: 0;
+      background:
+        linear-gradient(180deg, rgba(14,8,4,.88) 0%, rgba(14,8,4,.72) 22%, rgba(14,8,4,.25) 36%, rgba(14,8,4,.25) 62%, rgba(14,8,4,.80) 78%, rgba(14,8,4,.95) 100%); }
+    /* hide the photo's own dialog */
+    #mask { position: absolute; left: 255px; top: 548px; width: 572px; height: 360px; border-radius: 34px;
+      background: rgba(14,8,4,.55); filter: blur(18px); }
+
+    .kicker { position: absolute; left: 0; right: 0; top: 54px; text-align: center; }
+    .kicker span { display: inline-block; padding: 10px 26px; border-radius: 999px; border: 2px solid #E3B547;
+      font: 700 26px 'Space Mono', monospace; letter-spacing: 6px; color: #E3B547; background: rgba(14,8,4,.55); }
+    #h1 { position: absolute; left: 50px; right: 50px; top: 128px; text-align: center;
+      font: 700 52px/1.15 'Inter', sans-serif; color: #F5EFE3; letter-spacing: -0.5px; }
+    #h1 s { text-decoration-color: #C8423B; text-decoration-thickness: 5px; color: #b9ad95; }
+    #h2 { position: absolute; left: 30px; right: 30px; top: 205px; text-align: center;
+      font: italic 700 96px/1.05 'Playfair Display', serif; color: #F2C14E;
+      text-shadow: 0 4px 24px rgba(0,0,0,.6); }
+
+    #dlg { position: absolute; left: 175px; top: 445px; width: 730px; border-radius: 38px; background: #FBF5EA;
+      box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 2px rgba(227,181,71,.55); overflow: hidden; }
+    #dlg .t { margin-top: 40px; text-align: center; font: 800 44px 'Inter', sans-serif; color: #151515; }
+    #dlg .s { margin-top: 10px; text-align: center; font: 500 30px 'Inter', sans-serif; color: #4a4239; }
+    #dlg .f { margin: 30px 44px 34px; height: 82px; border-radius: 20px; border: 2px solid #151515; background: #fff;
+      display: flex; align-items: center; padding: 0 26px; font: 700 34px 'Inter', sans-serif; color: #151515; letter-spacing: 1px; }
+    #dlg .f i { display: inline-block; width: 3px; height: 40px; background: #C8423B; margin-left: 6px; }
+    #dlg .b { display: flex; border-top: 2px solid #d9cfbd; height: 150px; }
+    #dlg .b div { flex: 1; display: flex; align-items: center; justify-content: center; font: 700 40px 'Inter', sans-serif; }
+    #no { color: #a59c8e; text-decoration: line-through; text-decoration-thickness: 3px; border-right: 2px solid #d9cfbd; }
+    #yes { color: #fff; background: #B01E30; padding-right: 30px; font-weight: 800 !important; }
+    #tap { position: absolute; left: 838px; top: 838px; width: 96px; height: 96px; }
+
+    #urg { position: absolute; left: 70px; right: 70px; top: 935px; text-align: center; }
+    #urg span { display: inline-block; padding: 18px 30px; border-radius: 22px; background: rgba(14,8,4,.82);
+      border: 2px solid rgba(227,181,71,.6); font: 700 34px/1.3 'Inter', sans-serif; color: #F5EFE3; }
+    #urg b { color: #F2C14E; }
+
+    #cta { position: absolute; left: 60px; right: 60px; top: 1120px; height: 150px; border-radius: 34px;
+      background: linear-gradient(135deg, #F7DE8A 0%, #E3B547 45%, #B9861F 100%);
+      box-shadow: 0 18px 40px rgba(0,0,0,.5); display: flex; align-items: center; gap: 26px; padding: 0 34px; box-sizing: border-box; }
+    #cta .lg { width: 98px; height: 98px; border-radius: 50%; background: #151515; display: flex; align-items: center; justify-content: center; flex: none; }
+    #cta .lg img { width: 84px; }
+    #cta .tx { font: 900 44px/1.05 'Inter', sans-serif; color: #151515; }
+    #cta .tx small { display: block; font: 700 27px/1.3 'Inter', sans-serif; color: #3d2c0b; margin-top: 6px; }
+    #cta .ar { margin-left: auto; width: 74px; height: 74px; border-radius: 50%; background: #151515; color: #F2C14E;
+      font: 900 44px/74px 'Inter', sans-serif; text-align: center; flex: none; }
+    #by { position: absolute; left: 0; right: 0; top: 1292px; text-align: center; font: 700 22px 'Space Mono', monospace;
+      letter-spacing: 5px; color: #b9ad95; }
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="1" data-width="1080" data-height="1350" data-no-timeline>
+    <img id="bg" src="assets/bg.jpg">
+    <div id="shade"></div>
+    <div id="mask"></div>
+
+    <div class="kicker"><span>WISHLIST NOVEMBER</span></div>
+    <div id="h1"><s>Handbag</s> &nbsp;<s>Gadget</s> &nbsp;<s>Kasut baru</s></div>
+    <div id="h2">Tahun ni, emas.</div>
+
+    <div id="dlg">
+      <div class="t">Mula Album Baru?</div>
+      <div class="s">Namakan simpanan emas pertama anda.</div>
+      <div class="f">SIMPANAN EMAS #1<i></i></div>
+      <div class="b"><div id="no">Nanti dulu</div><div id="yes">Mula sekarang</div></div>
+    </div>
+    <svg id="tap" viewBox="0 0 96 96">
+      <circle cx="40" cy="38" r="30" fill="none" stroke="#F2C14E" stroke-width="5" opacity=".9"/>
+      <circle cx="40" cy="38" r="14" fill="#F2C14E" opacity=".85"/>
+    </svg>
+
+    <div id="urg"><span>Setiap kali pilih <b>&ldquo;nanti dulu&rdquo;</b>,<br>gram emas anda tak bertambah.</span></div>
+
+    <div id="cta">
+      <div class="lg"><img src="assets/logo_white.png"></div>
+      <div class="tx">DM kami sekarang<small>untuk mula simpan emas Public Gold</small></div>
+      <div class="ar">&rarr;</div>
+    </div>
+    <div id="by">AZLAN &amp; EZA</div>
+  </div>
+</body>
+</html>
