@@ -87,22 +87,23 @@ BAND_CSS = """
 """
 
 
-def gold_bar(w, h, label, cls=''):
-    return (f"<div class='goldbar {cls}' style='width:{w}px;height:{h}px'>"
-            f"<div class='gb-top'></div><div class='gb-face'><span>{label}</span></div><div class='gb-shine'></div></div>")
+def gold_bar(w, label='', cls='', bid=''):
+    """The user's real Public Gold 100 g bar (background removed, assets/goldbar_100g.png, 890x1140)."""
+    h = round(w * 1140 / 890)
+    idattr = f"id='{bid}' " if bid else ''
+    return (f"<div {idattr}class='goldbar {cls}' style='width:{w}px;height:{h}px'><div class='gb-shadow'></div>"
+            f"<img class='gb-img' src='assets/goldbar_100g.png'><div class='gb-shine'></div></div>")
 
 
 GOLD_CSS = """
     .goldbar { position: absolute; }
-    .gb-face { position: absolute; inset: 18% 0 0 0; border-radius: 10px;
-               background: linear-gradient(160deg, #FBE7A1 0%, #E8BE52 38%, #B9861F 72%, #8E6414 100%);
-               box-shadow: inset 0 -8px 16px rgba(80,50,0,.35), inset 0 6px 10px rgba(255,255,255,.45), 0 18px 30px rgba(60,40,0,.28);
-               display: flex; align-items: center; justify-content: center; }
-    .gb-face span { font: 700 46px 'Space Mono', monospace; color: #6E4B0C; text-shadow: 0 1px 0 rgba(255,240,190,.8); }
-    .gb-top { position: absolute; left: 7%; right: 7%; top: 0; height: 22%; border-radius: 8px 8px 0 0;
-              background: linear-gradient(180deg, #FFF3C4, #EBC562); }
-    .gb-shine { position: absolute; inset: 18% 0 0 0; border-radius: 10px; overflow: hidden;
-                background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.75) 50%, transparent 65%);
+    .gb-img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+    .gb-shadow { position: absolute; left: 12%; right: 2%; bottom: -5%; height: 9%; border-radius: 50%;
+                 background: radial-gradient(closest-side, rgba(70,45,0,.38), rgba(70,45,0,0)); }
+    .gb-shine { position: absolute; inset: 0;
+                -webkit-mask-image: url(assets/goldbar_100g.png); mask-image: url(assets/goldbar_100g.png);
+                -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+                background: linear-gradient(105deg, transparent 38%, rgba(255,250,225,.85) 50%, transparent 62%);
                 background-size: 300% 100%; background-position: 120% 0; }
 """
 
@@ -258,21 +259,21 @@ def build_scenes(T, total):
     css = BAND_CSS + GOLD_CSS + """
     #s4-head { position: absolute; left: 60px; width: 870px; top: 822px; text-align: center; font: 700 52px/1.1 'Playfair Display', serif; color: #151515; }
     #s4-head em { color: #C8423B; font-style: italic; }
-    #s4-bar { left: 285px; top: 950px; }
-    #s4-tick { position: absolute; left: 60px; width: 230px; top: 990px; height: 150px; border-radius: 22px; border: 3px solid #151515;
+    #s4-bar { left: 335px; top: 880px; }
+    #s4-tick { position: absolute; left: 60px; width: 230px; top: 960px; height: 150px; border-radius: 22px; border: 3px solid #151515;
                background: #fffaf0; box-shadow: 6px 6px 0 #151515; overflow: hidden; }
     #s4-tick .k { position: absolute; left: 20px; top: 12px; font: 700 28px 'Space Mono', monospace; color: #6b5a3a; letter-spacing: 2px; }
     .arr { position: absolute; left: 0; right: 0; top: 46px; text-align: center; font: 800 76px/1 'Inter', sans-serif; }
     #s4-up { color: #1E7A4F; } #s4-dn { color: #C8423B; }
-    #s4-same { position: absolute; left: 650px; top: 1000px; width: 280px; font: 800 44px/1.1 'Inter', sans-serif; color: #151515; }
+    #s4-same { position: absolute; left: 640px; top: 935px; width: 290px; font: 800 44px/1.1 'Inter', sans-serif; color: #151515; }
     #s4-same b { display: block; font: italic 700 64px 'Playfair Display', serif; color: #A97A1C; }
-    #s4-val { position: absolute; left: 60px; width: 870px; top: 1160px; text-align: center; font: 700 40px 'Inter', sans-serif; color: #151515; }
+    #s4-val { position: absolute; left: 640px; width: 290px; top: 1085px; font: 700 34px/1.5 'Inter', sans-serif; color: #151515; }
     #s4-val span { background: #E3B547; padding: 4px 14px; border-radius: 10px; }
     """
     html = f"""
     <div id="s4-head">Harga turun <em>&ne;</em> gram berkurang</div>
     <div id="s4-tick"><div class="k">HARGA</div><div id="s4-up" class="arr">&#9650;</div><div id="s4-dn" class="arr">&#9660;</div></div>
-    {gold_bar(340, 200, '100 g').replace("class='goldbar '", "id='s4-bar' class='goldbar'")}
+    {gold_bar(262, bid='s4-bar')}
     <div id="s4-same">tetap<b>100 g</b></div>
     <div id="s4-val">Yang berubah: <span>nilai semasa</span></div>"""
     h = T.cue(15) - t0
@@ -426,8 +427,8 @@ def build_scenes(T, total):
     #s10-bt { position: absolute; left: 40px; top: 96px; right: 40px; font: 800 64px/1.1 'Inter', sans-serif; color: #151515; }
     #s10-bt em { font-style: italic; font-family: 'Playfair Display', serif; color: #A97A1C; }
     """
-    steps = ''.join(gold_bar(150, 86, '', 'stp').replace("class='goldbar stp'", f"id='s10-g{i}' class='goldbar stp'")
-                    .replace("style='", f"style='left:{120 + i * 190}px;top:{1080 - i * 70}px;")
+    steps = ''.join(gold_bar(92, cls='stp', bid=f's10-g{i}')
+                    .replace("style='", f"style='left:{110 + i * 175}px;top:{1088 - i * 62}px;")
                     for i in range(4))
     html = f"""
     <div id="s10-a">
@@ -632,6 +633,7 @@ def write_project(proj, words, total):
     comp = os.path.join(proj, 'compositions'); os.makedirs(comp, exist_ok=True)
     os.makedirs(os.path.join(proj, 'assets'), exist_ok=True)
     logo_white(os.path.join(proj, 'assets', 'logo_white.png'))
+    shutil.copy(os.path.join(REPO, 'work', '13', 'gold', 'goldbar_100g.png'), os.path.join(proj, 'assets', 'goldbar_100g.png'))
     scenes, ledger = build_scenes(T, total)
     for sid, st, du, src in scenes:
         open(os.path.join(comp, f'{sid}.html'), 'w').write(src)

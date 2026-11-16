@@ -53,7 +53,9 @@ def speech_regions():
     n = len(x) // hop
     e = np.sqrt((x[:n * hop].reshape(n, hop) ** 2).mean(1))
     db = 20 * np.log10(e + 1e-6)
-    sp = db > np.percentile(db, 10) + 14
+    floor = np.percentile(db, 10)
+    thr, thr_low = floor + 14, floor + 7
+    sp = db > thr
     regs, i = [], 0
     while i < n:
         if sp[i]:
@@ -61,7 +63,15 @@ def speech_regions():
             while j < n and (sp[j] or sp[j:j + 15].any()):
                 j += 1
             if j - i >= 8:
-                regs.append((i * 0.01, j * 0.01))
+                # follow a soft word ending (e.g. the trailing "-rah" of "murah") down to near-silence, but stop
+                # at a new onset (energy rising back over the speech threshold); likewise for soft onsets
+                e = j
+                while e < min(n - 10, j + 45) and db[e:e + 6].max() > thr_low and db[e] <= thr:
+                    e += 1
+                s0 = i
+                while s0 > max(10, i - 15) and db[s0 - 6:s0].max() > thr_low and db[s0 - 1] <= thr:
+                    s0 -= 1
+                regs.append((i * 0.01, j * 0.01, s0 * 0.01, e * 0.01))
             i = j
         else:
             i += 1
@@ -81,11 +91,13 @@ def build():
     pieces, words = [], []          # pieces: source (a, b) with speech; words: per cue
     for n in KEEP:
         c = dict(cues[n]); c.update(OVERRIDE.get(n, {}))
-        r = [(max(a, c['s'] - 0.06), min(b, c['e'] + 0.12)) for a, b in regs if b > c['s'] - 0.06 and a < c['e'] + 0.12]
-        r = [(a, b) for a, b in r if b - a > 0.05]
+        hit = [g for g in regs if g[1] > c['s'] - 0.06 and g[0] < c['e'] + 0.12]
+        hit = [g for g in hit if min(g[1], c['e'] + 0.12) - max(g[0], c['s'] - 0.06) > 0.05]
+        r = [(max(a, c['s'] - 0.06), min(b, c['e'] + 0.12)) for a, b, _, _ in hit]
+        ext = [(max(ae, c['s'] - 0.25), min(be, c['e'] + 0.45)) for _, _, ae, be in hit]
         if not r:
             raise SystemExit(f'no speech in cue {n}')
-        pieces.append(dict(n=n, regs=r, text=c['text']))
+        pieces.append(dict(n=n, regs=r, ext=ext, text=c['text']))
         toks = c['text'].split()
         wts = np.array([syl(t) for t in toks], float)
         tot = sum(b - a for a, b in r)
@@ -100,14 +112,21 @@ def build():
         for i, t in enumerate(toks):
             words.append(dict(cue=n, w=t, s=sp2t(cum[i] + 1e-4), e=sp2t(cum[i + 1])))
     # flatten speech regions -> keep ranges, merging short gaps
-    allr = [rg for p in pieces for rg in p['regs']]
+    # merge on the core speech regions; then let each cut point follow the word's soft tail/onset
+    allr = [(a, b, ae, be) for p in pieces for (a, b), (ae, be) in zip(p['regs'], p['ext'])]
     segs = []
-    for a, b in allr:
-        a, b = a - PAD, b + PAD
-        if segs and a - segs[-1][1] <= MAX_GAP and a > segs[-1][0]:
-            segs[-1][1] = max(segs[-1][1], b)
+    for a, b, ae, be in allr:
+        lo, hi = min(a - PAD, ae - 0.03), max(b + PAD, be + 0.08)
+        if segs and a - (segs[-1][2] + PAD) <= MAX_GAP and a > segs[-1][0]:
+            segs[-1][1] = max(segs[-1][1], hi)
+            segs[-1][2] = max(segs[-1][2], b)
         else:
-            segs.append([a, b])
+            segs.append([lo, hi, b])
+    segs = [s_[:2] for s_ in segs]
+    for k in range(len(segs) - 1):        # tails must never run into the next kept piece
+        if segs[k][1] > segs[k + 1][0] and segs[k][0] < segs[k + 1][0]:
+            mid = (segs[k][1] + segs[k + 1][0]) / 2
+            segs[k][1], segs[k + 1][0] = mid, mid
     # snap to the frame grid
     segs = [(round(a * FPS) / FPS, round(b * FPS) / FPS) for a, b in segs]
     offs, t = [], 0.0
