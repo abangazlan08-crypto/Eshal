@@ -69,6 +69,7 @@ Note: videos 1–4 put captions at about 84–88% height, inside the bottom zone
 | 10 | Galeri Public Gold walking tour (handheld, Bahasa Sarawak, 2:50, Fuji grade, NO subtitles, NO zoom) | `videos/10_galeri_public_gold.py` |
 | 11 | 10 gram emas dalam setahun (voiceover only, full motion graphics, light 'Apple ad' look, real gold/cash cut-outs, 1:48) | `videos/11_10_gram_emas_setahun.py` |
 | 12 | NDO Fizikal Kuching lifestyle montage (3 clips + 3 photos, class photo removed by user, NO subtitles, natural audio, whip-blur cuts, polaroids, framed group clip, 0:35) | `videos/12_ndo_fizikal_kuching.py` |
+| 13 | Harga emas tengah jatuh (Eza, studio + gold bars, 4:09 raw -> 2:05, **HyperFrames**, 'Ledger Emas' look) | `videos/13_harga_emas_jatuh.py` + `13_assets/hf_project.py` |
 
 User rule (video 5): **keeping the original context matters more than the under-2-minute target.** Don't cut a line that carries meaning just to hit 2:00; ask or keep it.
 Caption tokens `display~syllables` (e.g. `RM1.99~9`) show numbers compactly while keeping word timing. Music helpers: `music_ss` < 0 delays the track, and `music_tempo` stretches it (atempo, same pitch) so its natural ending lands on the outro.
@@ -119,3 +120,17 @@ Bahasa Sarawak / walking vlog (video 10): spell captions by sound (e.g. *tok, mu
 
 Subtitles are small phrase captions (Jost SemiBold 46 on a dark pill, current word gold). The user asked for CapCut's **Posterama** font, which is a licensed Monotype font, so the stand-in is **Jost** (OFL, `assets/fonts`). Send motion demos at 30 fps 720p with high quality, because 15 fps low-res demos looked choppy and pixelated to the user.
 
+
+**HyperFrames videos (video 13):** the user asked for HyperFrames (HeyGen's HTML-to-video tool, `npx hyperframes`, pinned
+0.8.229 in `work/13/hf`). Python still does the cut (Descript SRT + speech energy, frame-exact segments, `base.mp4` with a
+keyframe every second), then `13_assets/hf_project.py` writes the HyperFrames project: `index.html` (camera wrapper,
+music bed with a `data-automation` ducking lane at 0.13 under speech, SFX `<audio>` clips) plus one sub-composition per
+graphic beat, a captions scene and an outro. GSAP must be served from `assets/gsap.min.js` (the render browser can't reach
+the CDN). Local Whisper can't download models here, so transcribe with Descript. SFX come from the Pixabay set bundled in
+`hyperframes/dist/skills/media-use/audio/assets/sfx` (whoosh, whoosh-cinematic, impact-bass, riser, sparkle, pop, click-soft).
+When Descript AI credits run out, reuse an approved track: re-publish a project's "Music" composition as audio to get a
+download URL (video 4's acoustic track, video 6's documentary track). Look for video 13, which must differ from earlier videos:
+cream paper, ink and gold, with Playfair Display, Inter and Space Mono. **FULL** layout puts graphics only in the top band
+(y 175-395). **LEDGER** layout eases the camera back into a framed card (scale 0.62, source rows 250-1250 shown at y 170-790)
+with a paper panel below (y 810-1225), so the face is never covered. Check with `npx hyperframes check` and `snapshot`
+before rendering.
