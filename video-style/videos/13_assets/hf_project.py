@@ -420,7 +420,7 @@ def build_scenes(T, total):
     #s10-h em { font: italic 700 52px 'Playfair Display', serif; color: #1E7A4F; }
     .stp { position: absolute; }
     #s10-cap { position: absolute; left: 60px; top: 1150px; width: 870px; text-align: right; font: italic 700 46px 'Playfair Display', serif; color: #A97A1C; }
-    #s10-b { position: absolute; left: 60px; top: 840px; width: 870px; height: 360px; border-radius: 28px; background: #fffaf0;
+    #s10-b { position: absolute; left: 60px; top: 900px; width: 870px; height: 250px; border-radius: 28px; background: #fffaf0;
              border: 3px solid #151515; box-shadow: 8px 8px 0 #151515; }
     #s10-b .kicker { position: absolute; left: 40px; top: 40px; }
     #s10-bt { position: absolute; left: 40px; top: 96px; right: 40px; font: 800 64px/1.1 'Inter', sans-serif; color: #151515; }
@@ -436,7 +436,7 @@ def build_scenes(T, total):
       <div id="s10-cap">secara berperingkat</div>
     </div>
     <div id="s10-b"><div class="kicker">Tak ada duit lebihan?</div>
-      <div id="s10-bt">Tak perlu <em>laparkan diri.</em></div></div>"""
+      <div id="s10-bt">Tak perlulah <em>paksa diri.</em></div></div>"""
     g0 = T.t(33, 'tambah') - t0
     br = T.t(34, 'berperingkat') - t0
     nb = T.cue(35) - t0
