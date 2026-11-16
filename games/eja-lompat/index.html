@@ -97,6 +97,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-o
 .levels{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .levels .st{display:block;color:var(--gold);font-size:14px;letter-spacing:1px;margin-top:2px;min-height:16px}
 .row{display:flex;gap:10px;margin-top:6px}
+.linkb{align-self:flex-start;font-weight:800;font-size:15px;color:var(--muted);text-decoration:underline;text-underline-offset:3px;padding:2px}
 .row .btn{flex:1;height:60px}
 .btn.go{--c:var(--green);font-size:24px}
 h2{margin:0;font-size:32px;font-weight:800;line-height:1}
@@ -188,6 +189,7 @@ h2{margin:0;font-size:32px;font-weight:800;line-height:1}
     <div class="lbl">Permainan</div>
     <div class="seg" id="modeSeg"><button data-v="eja">Eja<small id="ejaSub">pilih suku kata</small></button><button data-v="baca">Baca<small>pilih gambar</small></button><button data-v="mix">Campur<small>eja + baca</small></button></div>
     <div class="prog" id="progTxt"></div>
+    <button class="linkb" id="helpBtn">Tak dengar suara? Uji bunyi</button>
     <div class="row"><button class="btn ghost" id="shopBtn">Kedai</button><button class="btn go" id="playBtn">PILIH MODUL &#9654;</button></div>
   </div>
 </div>
@@ -325,21 +327,80 @@ const SFX={
   tap(){tone(660,.05,'triangle',.06)}
 };
 
-/* ---------------- speech ---------------- */
+/* ---------- speech: tuned for Android / Samsung tablets, with a sound-help panel ---------- */
 let voices=[];
+const hasTTS=('speechSynthesis' in window)&&typeof SpeechSynthesisUtterance!=='undefined';
 function loadVoices(){try{voices=speechSynthesis.getVoices()||[]}catch(e){}}
-if('speechSynthesis' in window){loadVoices();speechSynthesis.onvoiceschanged=loadVoices}
-function voiceFor(lang){
-  const pref=lang==='ms'?['ms','id']:['en-GB','en-US','en'];
-  for(const p of pref){const v=voices.find(v=>v.lang&&v.lang.replace('_','-').toLowerCase().startsWith(p.toLowerCase()));if(v)return v}
-  return null;
+if(hasTTS){loadVoices();try{speechSynthesis.addEventListener('voiceschanged',loadVoices)}catch(e){speechSynthesis.onvoiceschanged=loadVoices}}
+const vlang=l=>(l||'').replace('_','-').toLowerCase();
+function voiceFor(lang){const pref=lang==='ms'?['ms','id','in-']:['en-gb','en-us','en'];for(const p of pref){const c=voices.filter(v=>vlang(v.lang).startsWith(p));if(c.length)return c.find(v=>v.localService)||c[0]}return null}
+let sayTok=0,lastCancel=0,speechOK=false,helpShown=false;
+function hush(){sayTok++;if(!hasTTS)return;try{speechSynthesis.cancel();lastCancel=Date.now()}catch(e){}}
+function speak(text,lang,rate,cb,onStart){
+  const tok=++sayTok;let done=false;const fin=()=>{if(done)return;done=true;if(tok===sayTok&&cb)cb()};
+  setTimeout(fin,1600+text.length*150);
+  if(muted()){setTimeout(fin,300);return}
+  if(!hasTTS){speechTrouble();setTimeout(fin,300);return}
+  if(!voices.length)loadVoices();
+  const go=()=>{if(tok!==sayTok)return;try{
+    const u=new SpeechSynthesisUtterance(text);const v=voiceFor(lang);
+    if(v){u.voice=v;u.lang=v.lang}else if(!voices.length)u.lang=lang==='ms'?'ms-MY':'en-US';
+    u.rate=rate||.82;let started=false;
+    u.onstart=()=>{started=true;speechOK=true;onStart&&onStart()};u.onend=fin;
+    u.onerror=e=>{const er=e&&e.error;if(er&&er!=='interrupted'&&er!=='canceled')speechTrouble();fin()};
+    try{speechSynthesis.resume()}catch(e){}
+    speechSynthesis.speak(u);
+    setTimeout(()=>{if(!started&&!speechOK&&tok===sayTok&&!muted())speechTrouble()},3500);
+  }catch(e){speechTrouble()}};
+  let wait=Math.max(0,150-(Date.now()-lastCancel));
+  try{if(speechSynthesis.speaking||speechSynthesis.pending){speechSynthesis.cancel();lastCancel=Date.now();wait=150}}catch(e){}
+  if(wait)setTimeout(go,wait);else go();
 }
-function say(text,lang){
-  if(S.muted||!('speechSynthesis' in window)||!text)return;
-  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);const v=voiceFor(lang||S.lang);
-    if(v){u.voice=v;u.lang=v.lang}else u.lang=(lang||S.lang)==='ms'?'ms-MY':'en-GB';
-    u.rate=.8;u.pitch=1.05;speechSynthesis.speak(u)}catch(e){}
+function speechTrouble(){if(helpShown||speechOK)return;helpShown=true;openHelp()}
+let helpEl=null;
+function openHelp(){
+  if(!helpEl){
+    const st=document.createElement('style');
+    st.textContent='.shOver{position:fixed;inset:0;z-index:60;background:rgba(20,18,40,.6);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 16px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(16px,env(safe-area-inset-left,0px));box-sizing:border-box}'+
+    '.shP{width:min(480px,100%);background:#fffaf0;color:#1f1d3a;border-radius:24px;padding:18px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;font-size:16px;line-height:1.4;box-shadow:0 8px 0 rgba(0,0,0,.3);-webkit-user-select:text;user-select:text}'+
+    '.shP h2{margin:0;font-size:26px;line-height:1.1}.shD{background:#efeaf7;border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:15px}'+
+    '.shD .y{color:#11813f}.shD .n{color:#d63c3c}.shP ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px}.shP li.hot{background:#fff1b8;border-radius:10px;padding:4px 8px;margin-left:-8px}'+
+    '.shB{display:flex;gap:8px}.shB button{flex:1;height:54px;border:0;border-radius:16px;font:inherit;font-weight:800;font-size:18px;color:#fff;cursor:pointer;box-shadow:inset 0 -5px 0 rgba(0,0,0,.2)}'+
+    '.shT{background:#3f7cf6}.shC{background:#22b36b}.shS{font-weight:700;min-height:22px}.shN{font-size:13px;color:#6d6a8a}';
+    document.head.appendChild(st);
+    helpEl=document.createElement('div');helpEl.className='shOver';helpEl.setAttribute('role','dialog');helpEl.setAttribute('aria-label','Bantuan bunyi');
+    helpEl.innerHTML='<div class="shP"><h2>Suara tak keluar?</h2><div class="shD" id="shDiag"></div>'+
+      '<div class="shB"><button class="shT" id="shTest">Uji bunyi</button></div><div class="shS" id="shStat"></div>'+
+      '<ol id="shSteps">'+
+      '<li>Naikkan volume <b>media</b>: tekan butang volume tablet semasa game dibuka. Pastikan tablet tak dalam mod senyap.</li>'+
+      '<li>Buka link game dalam <b>Google Chrome</b>, bukan dalam app Claude. App Claude tak boleh keluarkan suara sebutan. Log masuk claude.ai dalam Chrome dulu.</li>'+
+      '<li>Pasang suara di tablet Samsung: <b>Tetapan</b> (Settings) → <b>Pengurusan umum</b> (General management) → <b>Bahasa</b> (Language) → <b>Teks ke pertuturan</b> (Text-to-speech). Pilih enjin <b>Speech Services by Google</b>. Tekan ⚙ → <b>Pasang data suara</b> (Install voice data) → muat turun <b>Bahasa Melayu</b> (atau Indonesia) dan <b>English</b>.</li>'+
+      '<li>Tutup Chrome sepenuhnya, kemudian buka semula game dan tekan Uji bunyi.</li></ol>'+
+      '<div class="shN">Bunyi bip dan efek game tetap keluar walaupun suara sebutan tiada.</div>'+
+      '<div class="shB"><button class="shC" id="shClose">Tutup</button></div></div>';
+    document.body.appendChild(helpEl);
+    helpEl.querySelector('#shClose').addEventListener('click',()=>{helpEl.style.display='none'});
+    helpEl.querySelector('#shTest').addEventListener('click',()=>{
+      helpBeep();loadVoices();const s=helpEl.querySelector('#shStat');
+      if(muted()){s.textContent='Bunyi game sedang dimatikan. Hidupkan butang bunyi dulu.';return}
+      s.textContent='Dengar... (bip, kemudian suara)';let ok=false;
+      setTimeout(()=>speak(curLang()==='ms'?'saya suka membaca':'I like to read',curLang(),.85,null,()=>{ok=true;speechOK=true;s.innerHTML='<span style="color:#11813f">Suara berfungsi ✓</span>'}),500);
+      setTimeout(()=>{if(!ok)s.innerHTML='<span style="color:#d63c3c">Suara tak keluar ✗</span> Kalau bip pun tak dengar, buat langkah 1. Kalau bip ada, ikut langkah yang ditanda.';renderDiag()},4500);
+      renderDiag();
+    });
+  }
+  renderDiag();helpEl.querySelector('#shStat').textContent='';helpEl.style.display='flex';
 }
+function renderDiag(){
+  if(!helpEl)return;loadVoices();
+  const ms=hasTTS&&voiceFor('ms'),en=hasTTS&&voiceFor('en');
+  const yn=(v,txt)=>v?'<span class="y">✓ '+txt+(v.name?' ('+v.name+')':'')+'</span>':'<span class="n">✗ '+txt+' tiada</span>';
+  helpEl.querySelector('#shDiag').innerHTML=hasTTS?(voices.length?'<span>Suara dalam peranti: '+voices.length+'</span>'+yn(ms,'Suara Bahasa Melayu')+yn(en,'Suara English'):'<span class="n">✗ Peranti belum beri senarai suara. Ikut langkah 3 dan 4.</span>'):'<span class="n">✗ Browser ini tak boleh keluarkan suara sebutan. Ikut langkah 2.</span>';
+  const li=helpEl.querySelectorAll('#shSteps li');li.forEach(x=>x.classList.remove('hot'));
+  if(!hasTTS)li[1].classList.add('hot');else if(!voices.length||!ms||!en)li[2].classList.add('hot');
+}
+const muted=()=>S.muted,curLang=()=>S.lang,helpBeep=()=>{audio();SFX.good()};
+function say(text,lang){if(text)speak(text,lang||S.lang,.8)}
 
 /* ---------------- three setup ---------------- */
 const host=$('#game');
@@ -832,6 +893,7 @@ function renderMenu(){
 $('#langSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;audio();S.lang=b.dataset.v;persist();renderMenu();SFX.tap()});
 $('#modeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;audio();S.mode=b.dataset.v;persist();renderMenu();SFX.tap()});
 $('#nameIn').addEventListener('input',e=>{S.name=e.target.value.slice(0,12);persist();updateNameTag()});
+$('#helpBtn').addEventListener('click',()=>{audio();openHelp()});
 $('#playBtn').addEventListener('click',()=>{audio();SFX.tap();openMods()});
 $('#shopBtn').addEventListener('click',()=>{audio();SFX.tap();G.state='shop';$('#menu').hidden=true;$('#shop').hidden=false;$('#shopNote').textContent='';renderShop()});
 $('#shopBack').addEventListener('click',()=>{SFX.tap();$('#shop').hidden=true;G.state='menu';$('#menu').hidden=false;renderMenu()});
