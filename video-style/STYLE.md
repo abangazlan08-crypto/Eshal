@@ -70,6 +70,7 @@ Note: videos 1–4 put captions at about 84–88% height, inside the bottom zone
 | 11 | 10 gram emas dalam setahun (voiceover only, full motion graphics, light 'Apple ad' look, real gold/cash cut-outs, 1:48) | `videos/11_10_gram_emas_setahun.py` |
 | 12 | NDO Fizikal Kuching lifestyle montage (3 clips + 3 photos, class photo removed by user, NO subtitles, natural audio, whip-blur cuts, polaroids, framed group clip, 0:35) | `videos/12_ndo_fizikal_kuching.py` |
 | 13 | Harga emas tengah jatuh (Eza, studio + gold bars, 4:09 raw -> 2:05, **HyperFrames**, 'Ledger Emas' look) | `videos/13_harga_emas_jatuh.py` + `13_assets/hf_project.py` |
+| 15 | DCA emas (Eza, 4:00 raw -> 2:48, **HyperFrames**, 'Market Desk' look: green chart decks, camera-bubble takeovers, DCA chart, real GAP app screenshot with personal details blurred) | `videos/15_dca_emas.py` + `15_assets/hf_project.py` |
 
 User rule (video 5): **keeping the original context matters more than the under-2-minute target.** Don't cut a line that carries meaning just to hit 2:00; ask or keep it.
 Caption tokens `display~syllables` (e.g. `RM1.99~9`) show numbers compactly while keeping word timing. Music helpers: `music_ss` < 0 delays the track, and `music_tempo` stretches it (atempo, same pitch) so its natural ending lands on the outro.
@@ -134,3 +135,8 @@ cream paper, ink and gold, with Playfair Display, Inter and Space Mono. **FULL**
 (y 175-395). **LEDGER** layout eases the camera back into a framed card (scale 0.62, source rows 250-1250 shown at y 170-790)
 with a paper panel below (y 810-1225), so the face is never covered. Check with `npx hyperframes check` and `snapshot`
 before rendering.
+
+**Video 15 notes:** user screenshots of the Public Gold app hold a real name, PG account number and wallet balance.
+Blur those before they go in a video, and ask about the GAP gram balance. Charts with numbers the speaker did not give are
+labelled "ILUSTRASI". Soft word endings (e.g. "murah") must not be clipped: `speech_regions()` follows each word's decay
+at the cut points (video 13 fix, reused here).
