@@ -43,7 +43,7 @@ DECK = """
 DESK = """
     .desk { position: absolute; left: 50px; top: 185px; width: 980px; height: 715px; border-radius: 34px; overflow: hidden;
             background: rgba(9,30,23,.55); box-shadow: inset 0 0 0 2px rgba(242,193,78,.35); }
-    .side { position: absolute; left: 450px; top: 1035px; width: 480px; }
+    .side { position: absolute; left: 450px; top: 1075px; width: 480px; }
 """
 CSS = DECK + DESK
 
@@ -185,10 +185,10 @@ def build(T, total):
       <div id="f-avl" style="position:absolute;left:{X0 - 10}px;top:{ay - 64:.0f}px;padding:6px 16px;border-radius:10px;background:#F2C14E;color:#0B231C;font:800 32px 'Inter',sans-serif">Kos purata belian</div>
       <div style="position:absolute;left:84px;top:640px;font:600 28px 'IBM Plex Mono',monospace;letter-spacing:4px;color:rgba(244,241,234,.6)">GRAM DIPEROLEH</div>
       {bars}{coins}
-      <div id="f-n1" class="note" style="top:1035px"><span class="dn">&#9650; Harga naik</span><br>gram mungkin sedikit berkurang</div>
-      <div id="f-n2" class="note" style="top:1035px"><span class="up">&#9660; Harga turun</span><br>gram mungkin lebih banyak</div>
-      <div id="f-n3" class="note" style="top:1035px"><span class="au">Kumpul emas</span><br>pada pelbagai paras harga</div>
-      <div id="f-n0" class="note" style="top:1035px"><span class="au">RM500</span><br>setiap bulan</div>"""
+      <div id="f-n1" class="note" style="top:1075px"><span class="dn">&#9650; Harga naik</span><br>gram mungkin sedikit berkurang</div>
+      <div id="f-n2" class="note" style="top:1075px"><span class="up">&#9660; Harga turun</span><br>gram mungkin lebih banyak</div>
+      <div id="f-n3" class="note" style="top:1075px"><span class="au">Kumpul emas</span><br>pada pelbagai paras harga</div>
+      <div id="f-n0" class="note" style="top:1075px"><span class="au">RM500</span><br>setiap bulan</div>"""
     css = CSS + """
     .br { position: absolute; width: 52px; border-radius: 8px 8px 2px 2px; background: rgba(244,241,234,.55); transform-origin: 50% 100%; }
     .cn { position: absolute; top: 236px; width: 104px; height: 42px; border-radius: 21px; background: #F2C14E; color: #0B231C;
@@ -256,29 +256,35 @@ def build(T, total):
     # S8 TAKEOVER: GAP account, start with RM100, add step by step -------------------------------
     t0, t1 = c(27) - 0.2, c(29) - 0.2
     take.append((c(27) - 0.2, c(29) - 0.35))
-    steps = ''.join(f"<div class='st' id='i-s{i}' style='left:{150 + i * 150}px;top:{820 - (i + 1) * 70}px;height:{(i + 1) * 70}px'></div>" for i in range(5))
-    html = f"""<div class="desk"></div>
-      <div id="i-card" style="position:absolute;left:110px;top:240px;width:860px;height:300px;border-radius:30px;
-           background:linear-gradient(135deg,#F7DE8A,#E3B547 50%,#B9861F);box-shadow:0 30px 60px rgba(0,0,0,.4)">
-        <div style="position:absolute;left:44px;top:36px;font:700 30px 'IBM Plex Mono',monospace;letter-spacing:5px;color:#3d2c0b">AKAUN GAP</div>
-        <div style="position:absolute;left:44px;top:80px;font:700 44px 'Inter',sans-serif;color:#151515">Public Gold</div>
-        <div style="position:absolute;left:44px;top:170px;font:600 30px 'Inter',sans-serif;color:#3d2c0b">Mula dengan</div>
-        <div style="position:absolute;left:250px;top:136px;font:700 110px/1 'Oswald',sans-serif;color:#151515">RM<span id="i-n">0</span></div>
-        <div style="position:absolute;right:40px;top:36px;width:90px;height:66px;border-radius:12px;background:linear-gradient(135deg,#fff3c4,#c99a2e);box-shadow:inset 0 0 0 2px rgba(0,0,0,.15)"></div></div>
-      {steps}
-      <div id="i-l" style="position:absolute;left:150px;top:840px;font:600 28px 'IBM Plex Mono',monospace;letter-spacing:3px;color:rgba(244,241,234,.7)">TAMBAH SECARA BERPERINGKAT &rarr;</div>
-      <div id="i-side" class="side"><div style="font:700 44px/1.2 'Inter',sans-serif;color:#F4F1EA">mengikut <span class="au">kemampuan</span></div></div>"""
-    css = CSS + """
-    .st { position: absolute; width: 110px; border-radius: 12px 12px 4px 4px; transform-origin: 50% 100%;
-          background: linear-gradient(180deg, #F2C14E, #B9861F); }"""
+    # the user's real GAP app screenshot (name, account no. and wallet blurred), 1290x1050 -> 640x521 screen
+    html = """<div class="desk"></div>
+      <div style="position:absolute;left:84px;top:208px;font:600 28px 'IBM Plex Mono',monospace;letter-spacing:4px;color:#F2C14E">AKAUN GAP &middot; PUBLIC GOLD</div>
+      <div id="i-ph" style="position:absolute;left:206px;top:262px;width:668px;height:600px;border-radius:58px;background:#111;
+           box-shadow:0 40px 90px rgba(0,0,0,.55), inset 0 0 0 3px #2b2b2b">
+        <div id="i-scr" style="position:absolute;left:14px;top:14px;width:640px;height:586px;border-radius:46px 46px 0 0;overflow:hidden;background:#fff6c9">
+          <img src="assets/gap_app.jpg" style="position:absolute;left:0;top:44px;width:640px;height:521px">
+          <div style="position:absolute;left:0;top:0;width:640px;height:46px;background:#F8DD5A"></div>
+          <div style="position:absolute;left:250px;top:10px;width:140px;height:30px;border-radius:16px;background:#111"></div>
+          <div id="i-hl" style="position:absolute;left:18px;top:478px;width:250px;height:64px;border-radius:14px;border:5px solid #E5484D;box-shadow:0 0 0 6px rgba(229,72,77,.25)"></div>
+          <div id="i-tap" style="position:absolute;left:79px;top:313px;width:84px;height:84px;border-radius:50%;border:6px solid #F2C14E;box-shadow:0 0 24px rgba(242,193,78,.8)"></div>
+          <div id="i-glare" style="position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.45) 50%,transparent 65%);background-size:300% 100%;background-position:120% 0"></div>
+        </div>
+        <div style="position:absolute;left:0;right:0;bottom:-2px;height:120px;background:linear-gradient(180deg,rgba(9,30,23,0),rgba(9,30,23,1));border-radius:0 0 58px 58px"></div></div>
+      <div id="i-s1" class="side"><div style="font:600 28px 'IBM Plex Mono',monospace;letter-spacing:4px;color:#F2C14E">MULA DENGAN</div>
+        <div style="font:700 92px/1 'Oswald',sans-serif;color:#F4F1EA">RM100</div></div>
+      <div id="i-s2" class="side"><div style="font:700 44px/1.2 'Inter',sans-serif;color:#F4F1EA">Tambah ikut <span class="au">kemampuan</span></div></div>"""
+    css = CSS
     n0 = T.t(27, 'RM') - t0
-    js = ("    tl.set(['#i-card','#i-l','#i-side'], {opacity: 0}, 0);\n    tl.set('.st', {scaleY: 0}, 0);\n"
-          f"    tl.fromTo('#i-card', {{opacity: 0, y: 80, rotationX: 40, transformPerspective: 900}}, {{opacity: 1, y: 0, rotationX: 0, duration: .8, ease: 'expo.out'}}, 0.6);\n"
-          f"    const cnt = {{v: 0}};\n"
-          f"    tl.to(cnt, {{v: 100, duration: 1.0, ease: 'power3.out', onUpdate: () => {{ document.getElementById('i-n').textContent = Math.round(cnt.v); }}}}, {n0:.3f});\n")
-    for i in range(5):
-        js += f"    tl.to('#i-s{i}', {{scaleY: 1, duration: .45, ease: 'back.out(1.5)'}}, {T.t(28, 'menambah') - t0 + i * 0.22:.3f});\n"
-    js += blur_in('#i-l', T.t(28, 'berperingkat') - t0 - 0.2) + blur_in('#i-side', T.t(28, 'kemampuan') - t0 - 0.3)
+    tp = T.t(28, 'menambah') - t0
+    js = ("    tl.set(['#i-ph','#i-hl','#i-tap','#i-s1','#i-s2'], {opacity: 0}, 0);\n"
+          f"    tl.fromTo('#i-ph', {{opacity: 0, y: 140, rotationX: 28, transformPerspective: 1200}}, {{opacity: 1, y: 0, rotationX: 0, duration: .9, ease: 'expo.out'}}, 0.55);\n"
+          f"    tl.fromTo('#i-glare', {{backgroundPosition: '120% 0'}}, {{backgroundPosition: '-60% 0', duration: 1.1, ease: 'power2.inOut'}}, 1.2);\n"
+          f"    tl.fromTo('#i-hl', {{opacity: 0, scale: 1.25}}, {{opacity: 1, scale: 1, duration: .35, ease: 'back.out(2)'}}, {n0 - 0.1:.3f});\n"
+          + blur_in('#i-s1', n0 - 0.1) +
+          f"    tl.to('#i-hl', {{opacity: 0, duration: .25}}, {tp - 0.3:.3f});\n"
+          f"    tl.fromTo('#i-tap', {{opacity: 1, scale: .4}}, {{opacity: 0, scale: 1.6, duration: .6, ease: 'power2.out', immediateRender: false}}, {tp:.3f});\n"
+          f"    tl.fromTo('#i-tap', {{opacity: 1, scale: .4}}, {{opacity: 0, scale: 1.6, duration: .6, ease: 'power2.out', immediateRender: false}}, {tp + 0.7:.3f});\n"
+          + swap('#i-s1', '#i-s2', T.t(28, 'berperingkat') - t0 - 0.2))
     S.append(('si', t0, t1 - t0, scene('si', css, html, js)))
 
     # S9 two kinds of smart ----------------------------------------------------------------------
@@ -407,6 +413,7 @@ def write_project(proj, words, total):
     os.makedirs(comp, exist_ok=True)
     shutil.copy(os.path.join(REPO, 'work', '13', 'proj', 'assets', 'logo_white.png'), a)
     shutil.copy(os.path.join(REPO, 'work', '13', 'proj', 'assets', 'gsap.min.js'), a)
+    shutil.copy(os.path.join(REPO, 'work', '15', 'gap', 'gap_app.jpg'), a)
     for f in ('whoosh', 'whoosh-short', 'whoosh-cinematic', 'pop', 'click-soft', 'click', 'sparkle', 'impact-bass-1',
               'impact-bass-2', 'riser', 'ping', 'key-press'):
         shutil.copy(os.path.join(SFX_DIR, f + '.mp3'), os.path.join(a, f'sfx-{f}.mp3'))
@@ -462,7 +469,7 @@ def write_project(proj, words, total):
             ('pop', T.t(14, 'meningkat') + 0.1, .35), ('pop', T.t(17, 'menurun') + 0.1, .35),
             ('riser', T.t(20, 'kos') - 2.1, .3), ('impact-bass-1', T.t(20, 'kos') - 0.2, .45), ('sparkle', T.t(20, 'kos') + 0.5, .35),
             ('click-soft', T.t(23, 'disiplin'), .7), ('whoosh-short', T.t(26, 'emosi') + 0.1, .35),
-            ('ping', T.t(27, 'RM') + 0.9, .3), ('pop', T.t(29, 'aset') - 0.25, .35), ('pop', T.t(30, 'tingkah') - 0.25, .35),
+            ('pop', T.t(27, 'RM') - 0.1, .4), ('click-soft', T.t(28, 'menambah'), .7), ('click-soft', T.t(28, 'menambah') + 0.7, .6), ('pop', T.t(29, 'aset') - 0.25, .35), ('pop', T.t(30, 'tingkah') - 0.25, .35),
             ('click-soft', T.t(35, 'selesa') - 0.3, .6), ('click-soft', T.t(36, 'tujuan') - 0.3, .6), ('click-soft', T.t(38, 'tabiat') - 0.3, .6),
             ('click', T.t(46, 'follow'), .8), ('whoosh-cinematic', total - 0.1, .45)]
     for i in range(12):
