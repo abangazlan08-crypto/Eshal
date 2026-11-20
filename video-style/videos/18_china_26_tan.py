@@ -29,8 +29,11 @@ KEEP = [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 
         34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 62, 63, 61]
 OVERRIDE = {5: dict(text='ketika ramai orang panik melihat harga emas turun, China pula'),
             22: dict(s=120.25, text='walaupun China menambah 26 tan emas,'),
+            40: dict(text='Ini menunjukkan emas masih mempunyai peranan strategik'),
+            41: dict(text='dalam sistem kewangan global.'),
             28: dict(s=142.75, text='maknanya China juga terdedah kepada risiko turun naik harga emas.')}
-SKIP = [(23.5, 24.62)]     # "China pula meluk--" false start inside cue 5
+SKIP = [(23.5, 25.45),      # "China pula meluk-- melak-" false starts inside cue 5
+        (213.2, 215.2)]     # repeated "dalam sistem global," (cue 40-41)
 MAX_GAP = 0.30     # pauses longer than this are cut
 PAD = 0.08         # speech padding kept on each side of a cut
 
@@ -93,7 +96,21 @@ def build():
         c = dict(cues[n]); c.update(OVERRIDE.get(n, {}))
         hit = [g for g in regs if g[1] > c['s'] - 0.06 and g[0] < c['e'] + 0.12]
         hit = [g for g in hit if min(g[1], c['e'] + 0.12) - max(g[0], c['s'] - 0.06) > 0.05]
-        hit = [g for g in hit if not any(g[0] >= x0 - 0.05 and g[1] <= x1 + 0.05 for x0, x1 in SKIP)]
+        cut = []
+        for a, b, ae, be in hit:                    # subtract SKIP intervals (may split one region in two)
+            parts = [(a, b, ae, be)]
+            for x0, x1 in SKIP:
+                nxt = []
+                for pa, pb, pae, pbe in parts:
+                    if pb <= x0 or pa >= x1:
+                        nxt.append((pa, pb, pae, pbe)); continue
+                    if pa < x0:
+                        nxt.append((pa, x0, pae, x0))
+                    if pb > x1:
+                        nxt.append((x1, pb, x1, pbe))
+                parts = nxt
+            cut += [q for q in parts if min(q[1], c['e'] + 0.12) - max(q[0], c['s'] - 0.06) > 0.05]
+        hit = cut
         r = [(max(a, c['s'] - 0.06), min(b, c['e'] + 0.12)) for a, b, _, _ in hit]
         ext = [(max(ae, c['s'] - 0.25), min(be, c['e'] + 0.45)) for _, _, ae, be in hit]
         if not r:

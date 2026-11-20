@@ -212,7 +212,7 @@ def build(T, total):
         <div id="h-v" style="position:absolute;left:236px;top:58px;font:700 52px 'Source Code Pro',monospace;color:#FFB000"><span id="h-n">0</span> T</div>
         <div id="h-u" style="position:absolute;left:470px;top:90px"><div class="num up" style="font-size:120px">+6%</div>
           <div class="md" style="font-size:34px">berbanding tempoh sama tahun lepas</div></div>
-        <div id="h-s" style="position:absolute;left:470px;top:260px;width:480px;font:600 30px 'Outfit',sans-serif;color:#6EE7F9">peranan strategik dalam sistem kewangan global</div>
+        <div id="h-s" style="position:absolute;left:470px;top:90px;width:470px;font:700 46px/1.15 'Outfit',sans-serif;color:#6EE7F9">Peranan strategik dalam sistem kewangan global</div>
         <div class="src">Sumber: World Gold Council</div></div>"""
     css = CSS + """
     .hb { position: absolute; bottom: 70px; width: 150px; border-radius: 8px 8px 0 0; transform-origin: 50% 100%; }
@@ -223,7 +223,7 @@ def build(T, total):
           f"    tl.to('#h-b2', {{scaleY: 1, duration: .8, ease: 'power3.out'}}, {T.t(36, '675') - t0 - 0.4:.3f});\n"
           + blur_in('#h-v', T.t(36, '675') - t0 - 0.3) + count('#h-n', 0, 675, T.t(36, '675') - t0 - 0.3, 1.0)
           + f"    tl.to('#h-b1', {{scaleY: 1, duration: .7, ease: 'power3.out'}}, {T.t(38, 'meningkat') - t0 - 0.2:.3f});\n"
-          + blur_in('#h-u', T.t(38, '6%') - t0 - 0.2) + blur_in('#h-s', T.t(40, 'strategik') - t0 - 0.3))
+          + blur_in('#h-u', T.t(38, '6%') - t0 - 0.2) + swap('#h-u', '#h-s', T.t(40, 'strategik') - t0 - 0.3))
     S.append(('sh', t0, t1 - t0, scene('sh', css, html, js)))
 
     # S8 FULL: gold can still fall (3 drivers) --------------------------------------------------------
