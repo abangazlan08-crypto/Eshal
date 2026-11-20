@@ -32,7 +32,7 @@ OVERRIDE = {5: dict(text='ketika ramai orang panik melihat harga emas turun, Chi
             40: dict(text='Ini menunjukkan emas masih mempunyai peranan strategik'),
             41: dict(text='dalam sistem kewangan global.'),
             28: dict(s=142.75, text='maknanya China juga terdedah kepada risiko turun naik harga emas.')}
-SKIP = [(23.5, 25.45),      # "China pula meluk-- melak-" false starts inside cue 5
+SKIP = [(23.5, 26.3),       # "China pula meluk-- melak-" false starts + a lip-lick before "China pula" (cue 5)
         (213.2, 215.2)]     # repeated "dalam sistem global," (cue 40-41)
 MAX_GAP = 0.30     # pauses longer than this are cut
 PAD = 0.08         # speech padding kept on each side of a cut
