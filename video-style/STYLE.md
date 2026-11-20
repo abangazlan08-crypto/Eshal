@@ -150,3 +150,7 @@ user's phone.
 
 **Video 17 note:** never flash made-up prices, even inside a rolling-number effect. Start from "RM ???" and count up quickly
 to the spoken price.
+
+**Video 18 notes:** after cutting, re-transcribe the CUT audio. Upload `base.mp4`'s audio to the Descript project with
+`import_media` (direct upload) and read the new transcript. It catches leftover false starts (e.g. "melak-") and repeated
+phrases that energy-based cuts miss. `SKIP` intervals in the cut script can now remove part of a speech region.
