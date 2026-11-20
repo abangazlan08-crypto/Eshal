@@ -72,6 +72,7 @@ Note: videos 1–4 put captions at about 84–88% height, inside the bottom zone
 | 13 | Harga emas tengah jatuh (Eza, studio + gold bars, 4:09 raw -> 2:05, **HyperFrames**, 'Ledger Emas' look) | `videos/13_harga_emas_jatuh.py` + `13_assets/hf_project.py` |
 | 15 | DCA emas (Eza, 4:00 raw -> 2:48, **HyperFrames**, 'Market Desk' look: green chart decks, camera-bubble takeovers, DCA chart, real GAP app screenshot with personal details blurred) | `videos/15_dca_emas.py` + `15_assets/hf_project.py` |
 | 16 | Bonus hujung tahun (Eza, **Bahasa Sarawak**, 2:05 raw -> 1:29, **HyperFrames**, 'Sky Glass' look: white/sky glass, portrait camera card takeovers, bonus drain counter, donut, yearly gram bars, white subtitles with light-blue keywords) | `videos/16_bonus_sarawak.py` + `16_assets/hf_project.py` |
+| 17 | Harga emas RM515 segram (Eza, 70 s raw -> 53 s, **HyperFrames**, 'Crimson Newsroom' look: crimson news decks, LIVE camera box takeovers, real 1 Sep 2025 G100 poster with the name and PG number blurred, RM514 vs RM515 bars, 1 KG ring, lucky-draw ticket) | `videos/17_harga_515.py` + `17_assets/hf_project.py` |
 
 User rule (video 5): **keeping the original context matters more than the under-2-minute target.** Don't cut a line that carries meaning just to hit 2:00; ask or keep it.
 Caption tokens `display~syllables` (e.g. `RM1.99~9`) show numbers compactly while keeping word timing. Music helpers: `music_ss` < 0 delays the track, and `music_tempo` stretches it (atempo, same pitch) so its natural ending lands on the outro.
@@ -146,3 +147,6 @@ at the cut points (video 13 fix, reused here).
 fikir), but subtitles must match what is actually SAID, and list every place where the audio differs from the script.
 Deliver a compact upload version (~25-40 MB, two-pass) as an attachment: the 100 MB file could not be saved on the
 user's phone.
+
+**Video 17 note:** never flash made-up prices, even inside a rolling-number effect. Start from "RM ???" and count up quickly
+to the spoken price.
